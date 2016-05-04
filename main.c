@@ -21,31 +21,6 @@ int main(int argc, char **argv) {
     int a_player = 0; //Current player
     int decknum; //Number of decks chosen by the player
     int deck_size; //Size of the array of cards
-    
-    int house_money = 0;
-    int game_over = 0; //If this reaches 4, then no player can play
-    
-    // These variables are important for statistics/graphical functions
-    int bet[MAX_PLAYERS] = {0}; //Bet for each of the players
-    int wins[MAX_PLAYERS] = {0};
-    int losses[MAX_PLAYERS] = {0};
-    int ties[MAX_PLAYERS] = {0};
-    int bust[MAX_PLAYERS] = {0};
-    
-    //Seeds based on an integer
-    srand(456);
-
-    //Asks for player settings
-    SettingsReader(&decknum, money, bet);
-    deck_size = decknum * MAX_DECK_SIZE;
-
-    int deck[deck_size];
-
-    //Makes the first deck
-    MakeDeck(decknum, deck);
-    shuffler(deck, deck_size);
-
-    FirstHand(deck, player_cards, house_cards, pos_player_hand, &pos_house_hand, deck_size, money, bet);
 
 	printf("Keys: \n(H)it - (S)tand - (Q)uit - (N)ew Game - (B)et - (D)ouble - Surrende(r)\n");
 	
@@ -55,37 +30,34 @@ int main(int argc, char **argv) {
     LoadCards(cards);
 
  	while (quit == 0) {
-		while (money[a_player] - bet[a_player] < 0 && a_player < MAX_PLAYERS)
-			a_player += 1;
         // while there's events to handle
         while (SDL_PollEvent(&event)) {
 			if (event.type == SDL_QUIT) {
 				// The window gets closed
                 quit = 1;
-                WritesStats(wins, losses, ties, money, house_money);
             }
 			else if (event.type == SDL_KEYDOWN) {
 				switch (event.key.keysym.sym) { 
-				    //You can quit with the 'q' key too
+				    // You can quit with the 'q' key too
                     case SDLK_q:
-                        //quit
+                        // quit
                         break;
-                    //Pass to the next player
+                    // Pass to the next player
 					case SDLK_s:
 						// stand
                         break;
-                    //The player asks for another card
+                    // The player asks for another card
 					case SDLK_h:
 						// hit
                         break;
-                    //You can't start a new game unless the current game is over.
+                    // You can't start a new game unless the current game is over.
                     case SDLK_n:
 						//new game
                         break;
                     case SDLK_r:
 						// surrender
 						break;
-					case SDLK _d:
+					case SDLK_d:
 						// double
 						break;
 					case SDLK_b:
@@ -97,9 +69,6 @@ int main(int argc, char **argv) {
 			}
         }
         // The house plays
-        if (a_player == 4) {
-			PlayerHouse(house_cards, &pos_house_hand, deck_size, deck, &a_player);
-            house_money += MoneyCalculator(bet, player_cards, money, house_cards, wins, losses, ties, pos_player_hand, pos_house_hand);
         }
         // render game table
         RenderTable(money, serif, imgs, renderer, a_player);
