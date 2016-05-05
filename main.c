@@ -1,5 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_image.h>
+
+#include "general.h"
+#include "game.h"
+#include "gui.h"
 
 int main(int argc, char **argv) {
 	SDL_Window *window = NULL;
@@ -12,22 +21,16 @@ int main(int argc, char **argv) {
     int delay = 300;
     int quit = 0;
     
-    int money[MAX_PLAYERS] = {0};
-	int player_cards[MAX_PLAYERS][MAX_CARD_HAND] = {{0}};
-    int house_cards[MAX_CARD_HAND] = {0};
-    int pos_house_hand = 0;
-    int pos_player_hand[MAX_PLAYERS] = {0};
-    
-    int a_player = 0; //Current player
+    playerlist players;
+        
     int decknum; //Number of decks chosen by the player
-    int deck_size; //Size of the array of cards
 
 	printf("Keys: \n(H)it - (S)tand - (Q)uit - (N)ew Game - (B)et - (D)ouble - Surrende(r)\n");
 	
 	// initialize graphics
-	InitEverything(WIDTH_WINDOW, HEIGHT_WINDOW, &serif, &large_serif, imgs, &window, &renderer);
+	init_everything(WIDTH_WINDOW, HEIGHT_WINDOW, &serif, &large_serif, imgs, &window, &renderer);
     // loads the cards images
-    LoadCards(cards);
+    load_cards(cards);
 
  	while (quit == 0) {
         // while there's events to handle
@@ -69,24 +72,26 @@ int main(int argc, char **argv) {
 			}
         }
         // The house plays
-        }
+
+		/*
         // render game table
-        RenderTable(money, serif, imgs, renderer, a_player);
+        render_table(money, serif, imgs, renderer, a_player);
         // render house cards
-        RenderHouseCards(house_cards, pos_house_hand, cards, renderer, a_player);
+        render_house_cards(house_cards, pos_house_hand, cards, renderer, a_player);
         // render player cards
-        RenderPlayerCards(player_cards, pos_player_hand, cards, renderer);
+        render_player_cards(player_cards, pos_player_hand, cards, renderer);
         // render bust/game over rectangle
-        RenderBust(serif, large_serif, renderer, bust, money, bet, &game_over);
+        render_bust(serif, large_serif, renderer, bust, money, bet, &game_over);
         // render in the screen all changes above
         SDL_RenderPresent(renderer);
     	// add a delay
 		SDL_Delay(delay);
+		*/
     }
 
 
     // free memory allocated for images and textures and close everything including fonts
-    UnLoadCards(cards);
+    unload_cards(cards);
     TTF_CloseFont(serif);
     TTF_CloseFont(large_serif);
     SDL_FreeSurface(imgs[0]);
