@@ -1,5 +1,5 @@
-#include <stdio.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "general.h"
@@ -28,6 +28,7 @@ c_node * push(stack *s, card data) {
 	
 	new_node->c_data = data;
 	new_node->next = s->top;
+	s->top = new_node;
 	
 	s->size += 1;
 	
@@ -68,26 +69,32 @@ void insert_node(playerlist *players, player new, int index) {
 	new_node = (p_node *)allocate(sizeof(p_node));
 	new_node->p_data = new;
 	
+	// initialize tail for first element
+	if(players->size == 0)
+		players->tail = new_node;
+	
 	// For the first position
 	if(index == 0) {
 		new_node->next = players->head;
 		players->head = new_node;
-		return; // Exit function
+		players->tail->next = new_node; // update tail
 	}
-	
-	// All other positions
-	while((i + 1) != index) {
-		cur = cur->next;
-		i++;
+	else {
+		// All other positions
+		while((i + 1) != index) {
+			cur = cur->next;
+			i += 1;
+		}
+		
+		new_node->next = cur->next;
+		cur->next = new_node;
 	}
-	
-	new_node->next = cur->next;
-	cur->next = new_node;
-	players->size += 1;
 	
 	// Change tail if element was inserted at the end of the list
 	if(index == players->size)
 		players->tail = new_node;
+	
+	players->size += 1;
 }
 
 // Frees memory of the player list
@@ -104,13 +111,6 @@ void free_list(playerlist *players) {
 
 // Other general functions
 
-void swap(int array[], int source, int dest) {
-	int temp;
-	temp = array[source];
-	array[source] = array[dest];
-	array[dest] = temp;
-}
-
 void read_settings(char *filename, playerlist *players, int *deck_num) {
 	FILE *f;
 	int player_num, i, args;
@@ -118,35 +118,44 @@ void read_settings(char *filename, playerlist *players, int *deck_num) {
 	char temptype[2];
 	player temp;
 	
+	// initialize player variables
 	temp.wins = 0; temp.losses = 0; temp.ties = 0;
 	temp.points = 0; temp.active = 1; temp.status = 0;
+	temp.type = 0;
+	
+	// initialize player hand
+	temp.hand = *((stack *)allocate(sizeof(stack)));
+	temp.hand.top = NULL;
+	temp.hand.size = 0;
 	
 	f = fopen(filename, "r");
 	
 	fgets(line, BUFFER, f);
 	args = sscanf(line, "%d-%d", deck_num, &player_num);
-	if(args < 2 || deck_num < 4 || deck_num > 8 || player_num < 1 || player_num > 4) {
+	if(args < 2 || *deck_num < 4 || *deck_num > 8 || player_num < 1 || player_num > 4) {
 		printf("Invalid number of decks and/or players! Please try again.");
 		exit(EXIT_FAILURE);
 	}
 	
+	players->size = 0;
+	
 	for(i = 0; i < player_num; i++) {
 		fgets(line, BUFFER, f);
-		args = sscanf(line, "%[^-]-%[^-]-%[^-]-%d-%d", temptype, temp.name, &temp.money, &temp.bet);
-		if(args < 4 || temp.money < 10 || ) {
+		args = sscanf(line, "%[^-]-%[^-]-%d-%d", temptype, temp.name, &temp.money, &temp.bet);
+		if(args < 4) {
 			printf("Invalid settings file! Check line %d. Please try again.", i + 2);
 			exit(EXIT_FAILURE);
 		}
 		
 		// Check for errors regarding the start money
 		if(temp.money < 10 || temp.money > 500) {
-			printf("Starting money must be between 10 and 500! Check line %d.", i + 2);
+			printf("Starting money must a whole number between 10 and 500! Check line %d.", i + 2);
 			exit(EXIT_FAILURE);
 		}
 		
 		// Check for errors regarding the bet
 		if(temp.bet < 2 || temp.bet > (temp.money / 4)) {
-			printf("Betting money invalid. Must be between 2 and 25\% of the starting money. Check line %d.", i + 2);
+			printf("Betting money invalid. Must be between 2 and 25%% of the starting money. Check line %d.", i + 2);
 			exit(EXIT_FAILURE);
 		}
 		
@@ -159,14 +168,24 @@ void read_settings(char *filename, playerlist *players, int *deck_num) {
 			printf("Invalid player type in line %d! Please try again.", i + 2);
 			exit(EXIT_FAILURE);
 		}
-			
-		insert_node(players, temp, players.size);
+		
+		insert_node(players, temp, players->size);
 	}
 	
 	fclose(f);
 	
 	// Initializes house
-	temp.type = HOUSE_TYPE;
+	temp.type = 2;
+	temp.status = 0;
+	sprintf(temp.name, "_house_");
+
+	insert_node(players, temp, players->size);
+}
+
+void print_players(playerlist players) {
+	p_node *p;
 	
-	insert_node(players, temp, players.size);
+	for(p = players.head; p != players.tail; p = p->next) {
+		printf("%s\n", p->p_data.name);
+	}
 }

@@ -1,6 +1,8 @@
 #ifndef GENERAL_H
 #define GENERAL_H
 
+#include <stdlib.h>
+
 #define BUFFER 256
 #define MAX_NAME 8
 #define HOUSE_TYPE 2 
@@ -23,7 +25,7 @@ typedef struct {
 } stack;
 
 typedef struct {
-	char *name[MAX_NAME];
+	char name[MAX_NAME];
 	int type; // 0 - normal, 1 - AI, 2 - house
 	stack hand;
 	int money;
@@ -54,8 +56,8 @@ c_node * pop(stack *);
 int is_empty(stack);
 void free_stack(stack *);
 void insert_node(playerlist *, player, int);
-void free_list(playerlist *;
-void swap(int [], int, int);
+void free_list(playerlist *);
 void read_settings(char *, playerlist *, int *);
+void print_players(playerlist);
 	
 #endif

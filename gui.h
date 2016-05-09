@@ -1,6 +1,10 @@
 #ifndef GUI_H
 #define GUI_H
 
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_image.h>
+
 #include "general.h"
 #include "game.h"
 
@@ -14,7 +18,8 @@
 #define EXTRASPACE 150
 #define MARGIN 5
 #define MAX_PLAYERS 4         // maximum number of simultaneous active players   
-#define UPSIDE_DOWN_CARD 52     
+#define UPSIDE_DOWN_CARD 52
+#define MAX_DECK_SIZE 52     
 
 void init_everything(int, int, TTF_Font **, SDL_Surface **, SDL_Window **, SDL_Renderer **);
 void init_SDL();
@@ -26,7 +31,7 @@ int render_logo(int, int, SDL_Surface *, SDL_Renderer *);
 void render_table(playerlist, TTF_Font *, SDL_Surface **, SDL_Renderer *);
 void render_card(int, int, int, SDL_Surface **, SDL_Renderer *);
 void render_house_cards(player, SDL_Surface **, SDL_Renderer *);
-void render_player_cards(player, SDL_Surface **, SDL_Renderer *);
+void render_player_cards(playerlist, SDL_Surface **, SDL_Renderer *);
 void load_cards(SDL_Surface **);
 void unload_cards(SDL_Surface **);
 
