@@ -13,9 +13,9 @@
 #include "gui.h"
 
 int main(int argc, char **argv) {
-	
-	// SDL variables
-	SDL_Window *window = NULL;
+
+    // SDL variables
+    SDL_Window *window = NULL;
     SDL_Renderer *renderer = NULL;
     TTF_Font *serif = NULL;
     TTF_Font *large_serif = NULL; // larger version of serif
@@ -36,17 +36,14 @@ int main(int argc, char **argv) {
 		return EXIT_FAILURE;
 	}
 	
-	players = (playerlist *)allocate(sizeof(playerlist));
-	read_settings(argv[1], players, &deck_num);
+    players = (playerlist *)allocate(sizeof(playerlist));
+    read_settings(argv[1], players, &deck_num);
 
 	init_deck(&deck, deck_num);
 	
 	// set first player
 	current = players->head; 
 	current->p_data.status = 1;
-
-	for(int i = 0; i < 2; i++)
-		deal_card(&(current->p_data), deck);
 	
 	printf("Keys:\n(H)it - (S)tand - (Q)uit - (N)ew Game - (B)et - (D)ouble - Surrende(r)\n");
 	
@@ -54,6 +51,8 @@ int main(int argc, char **argv) {
 	init_everything(WIDTH_WINDOW, HEIGHT_WINDOW, &serif, imgs, &window, &renderer);
     // loads the cards images
     load_cards(cards);
+    
+    first_round(players, deck); // deal first round of cards
     
  	while (quit == 0) {
 		
@@ -75,7 +74,11 @@ int main(int argc, char **argv) {
                     // Pass to the next player
 					case SDLK_s:
 						// stand
-						next_player(&current);
+						
+						// only go to next player if its not the house playing
+						if(current != players->tail)
+							next_player(&current);
+                        
                         break;
                         
                     // The player asks for another card
@@ -86,6 +89,11 @@ int main(int argc, char **argv) {
                     // You can't start a new game unless the current game is over.
                     case SDLK_n:
 						//new game
+						
+						// only start new game if house is finished playing
+						if(current == players->tail)
+							next_player(&current);
+							
                         break;
                         
                     case SDLK_r:
@@ -105,9 +113,7 @@ int main(int argc, char **argv) {
 				} // close event switch
 			} 
         } // close event loop
-        
-        // The house plays
-		
+        	
         // render game table
         render_table(*players, serif, imgs, renderer);
         // render house cards
@@ -116,7 +122,7 @@ int main(int argc, char **argv) {
         render_player_cards(*players, cards, renderer);
         // render bust/game over rectangle
         //render_bust(serif, large_serif, renderer, bust, money, bet, &game_over);
-        // render in the screen all changes above*/
+        // render in the screen all changes above
         SDL_RenderPresent(renderer);
     	// add a delay
 		SDL_Delay(delay);

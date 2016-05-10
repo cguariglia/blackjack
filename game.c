@@ -86,3 +86,19 @@ void deal_card(player *dest, stack *source) {
 	temp = pop(source);
 	push(&(dest->hand), temp->c_data);
 }
+
+// deal two cards to every player and the house
+void first_round(playerlist *players, stack *deck) {
+	int i;
+	p_node *cur;
+	
+	// for each player and the house
+	for(cur = players->head; cur != NULL; cur = cur->next) {
+		for(i = 0; i < 2; i++) // give two cards
+			deal_card(&(cur->p_data), deck);
+		
+		// if last players that recived cards was the house then its done
+		if(cur->next == players->head)
+			break;
+	}
+}
