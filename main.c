@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
     // loads the cards images
     load_cards(cards);
     
-    first_hand(players, deck); // deal first round of cards
+    first_hand(players, deck, deck_num); // deal first round of cards
     
  	while (quit == 0) {
 		
@@ -85,7 +85,7 @@ int main(int argc, char **argv) {
 					case SDLK_h:
 						// hit
 						if(current != players->tail)
-						    deal_card(&(current->p_data), deck);
+						    deal_card(&(current->p_data), deck, deck_num);
 						    
                         break;
                         
@@ -94,8 +94,10 @@ int main(int argc, char **argv) {
 						//new game
 						
 						// only start new game if house is finished playing
-						if(current == players->tail)
+						if(current == players->tail) {
 							next_player(&current);
+							first_hand(players, deck, deck_num);
+						}
 							
                         break;
                         
@@ -114,10 +116,25 @@ int main(int argc, char **argv) {
 					default:
 						break;
 				} // close event switch
-				if(current->p_data.points > BLACKJACK)
-					next_player(&current);
 			} 
         } // close event loop
+        
+        // check if player bust
+        if(current->p_data.points > BLACKJACK && current != players->tail) {
+			current->p_data.status = BUST_STATUS;
+			next_player(&current);
+		}
+		// check if player has blackjack
+        else if(has_blackjack(current->p_data) && current != players->tail) {
+			current->p_data.status = BLACKJACK_STATUS;
+			next_player(&current);
+		}
+        
+        // time for da houzz
+        if(current == players->tail && players->tail->p_data.status == 1) {
+			house_plays(&(players->tail->p_data), deck, deck_num);
+			end_game(players);
+		}
         
         // render game table
         render_table(*players, serif, imgs, renderer);

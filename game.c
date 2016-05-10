@@ -80,8 +80,12 @@ void init_deck(stack **deck, int deck_num) {
 	make_deck(*deck, deck_num);
 }
 
-void deal_card(player *dest, stack *source) {
+void deal_card(player *dest, stack *source, int deck_num) {
 	c_node *temp;
+	
+	 // Check if deck is empty
+	 if(is_empty(*source))
+		init_deck(&source, deck_num);
 	
 	temp = pop(source);
 	push(&(dest->hand), temp->c_data);
@@ -91,18 +95,24 @@ void deal_card(player *dest, stack *source) {
 }
 
 // Deal two cards to every player and the house
-void first_hand(playerlist *players, stack *deck) {
+void first_hand(playerlist *players, stack *deck, int deck_num) {
 	int i;
 	p_node *cur;
 	
+	players->tail->p_data.active = 1;
+	
 	// For each player and the house
 	for(cur = players->head; cur != NULL; cur = cur->next) {
-		for(i = 0; i < 2; i++) // give two cards
-			deal_card(&(cur->p_data), deck);
+		free_stack(&(cur->p_data.hand));
 		
-		// If last players that recived cards was the house then its done
-		if(cur->next == players->head)
-			break;
+		if(cur->p_data.active == 1) {
+			for(i = 0; i < 2; i++) // give two cards
+				deal_card(&(cur->p_data), deck, deck_num);
+		
+			// If the house has recieved cards then stop dealing
+			if(cur->next == players->head)
+				break;
+		}
 	}
 }
 
@@ -127,4 +137,70 @@ int point_calculator(player _player) {
 		
 	return sum;
 }
+
+void end_game(playerlist *players) { 
+	p_node *cur_player;
 	
+	// Calculates money and wins/losses/ties for each player and the house
+	for(cur_player = players->head; cur_player != players->tail; cur_player = cur_player->next) {
+		if(cur_player->p_data.active == 0)
+			continue;
+		
+		if(cur_player->p_data.points == BLACKJACK && cur_player->p_data.hand.size == 2 && players->tail->p_data.points != BLACKJACK) {
+			cur_player->p_data.money += (int)(cur_player->p_data.bet * 1.5);
+			players->tail->p_data.money -= (int)(cur_player->p_data.bet * 1.5);
+			cur_player->p_data.wins += 1;
+		}
+		else if(players->tail->p_data.points > BLACKJACK) {
+			cur_player->p_data.money -= cur_player->p_data.bet;
+			players->tail->p_data.money += cur_player->p_data.bet;
+			cur_player->p_data.wins += 1;
+		}
+		else if(players->tail->p_data.points == BLACKJACK && cur_player->p_data.points != BLACKJACK) {
+			cur_player->p_data.money -= cur_player->p_data.bet;
+			players->tail->p_data.money -= cur_player->p_data.bet;
+			cur_player->p_data.losses += 1;
+		}
+		else if(players->tail->p_data.points <= BLACKJACK) {
+			if(cur_player->p_data.points > players->tail->p_data.points) {
+				cur_player->p_data.money += cur_player->p_data.bet;
+				players->tail->p_data.money -= cur_player->p_data.bet;
+				cur_player->p_data.wins += 1;
+			}
+			else {
+				cur_player->p_data.money -= cur_player->p_data.bet;
+				players->tail->p_data.money += cur_player->p_data.bet;
+				cur_player->p_data.losses += 1;
+			}
+		}
+		else
+			cur_player->p_data.ties += 1;
+	}
+}
+
+void house_plays(player *house, stack *deck, int deck_num) {
+	c_node *cur;
+	int aces = 0;
+	
+	while(house->points < 17)
+		deal_card(house, deck, deck_num);
+		
+	if(house->points == 17) {
+		for(cur = house->hand.top; cur != NULL; cur = cur->next)
+			if(cur->c_data.id == 13) 
+				aces += 1;
+	
+		if(aces == 1)
+			deal_card(house, deck, deck_num);
+	}
+	
+	house->status = 0;
+	house->active = 2;
+}
+
+int has_blackjack(player _player) {
+	if(_player.hand.size == 2)
+		return (point_calculator(_player) == BLACKJACK);
+	else
+		return 0;
+}

@@ -92,7 +92,7 @@ void render_house_cards(player _house, SDL_Surface **_cards, SDL_Renderer*_rende
         y =(int)(0.26f*HEIGHT_WINDOW);
         
         // Makes the card render upside-down or right-side up
-        if(_house.hand.size == 2 && cards == 1 && _house.status != 1)
+        if(_house.hand.size == 2 && cards == 1 && _house.active != 2)
             render_card(x, y, UPSIDE_DOWN_CARD, _cards, _renderer);
         else
             render_card(x, y, cur->c_data.id - 1, _cards, _renderer);
