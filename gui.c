@@ -104,23 +104,29 @@ void render_player_cards(playerlist players, SDL_Surface **_cards, SDL_Renderer*
     int pos, x, y, cards, num_player = 0;
     p_node *cur_player;
     c_node *cur_card;
-    int card_code;
+    int i, card_code, hand_size;
 
     // For every card of every player
     for(cur_player = players.head; cur_player->p_data.type != HOUSE_TYPE; cur_player = cur_player->next) {
 		if(cur_player->p_data.active == 0)
 			continue;
 			
-        for(cards = 0, cur_card = cur_player->p_data.hand.top; cur_card != NULL; cur_card = cur_card->next, cards++) {
+		hand_size = cur_player->p_data.hand.size;
+        for(cards = 0; cards < hand_size; cards++) {
+			cur_card = cur_player->p_data.hand.top;
+			
+			// 'walk' to card to render
+			for(i = 0; i < hand_size - cards - 1; i++)
+				cur_card = cur_card->next;
 			
             // Draw all cards of the player: calculate its position: only 4 positions are available!
             pos = cards % 4;
-            x =(int) num_player*((0.95f*WIDTH_WINDOW)/4-5)+(cards/4)*12+15;
+            x =(int) num_player*((0.95f*WIDTH_WINDOW)/4-5) + (cards/4)*12+15;
             y =(int)(0.55f*HEIGHT_WINDOW)+10;
             if(pos == 1 || pos == 3) x += CARD_WIDTH + 30;
-            if(pos == 2 || pos == 3) y += CARD_HEIGHT+ 10;
+            if(pos == 2 || pos == 3) y += CARD_HEIGHT + 10;
             
-            card_code = (cur_card->c_data.id - 1) * (cur_card->c_data.suit + 1); 
+            card_code = (cur_card->c_data.id - 1) + (13 * cur_card->c_data.suit); 
             
             // Render it
             render_card(x, y, card_code, _cards, _renderer);

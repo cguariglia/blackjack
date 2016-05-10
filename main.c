@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
     // loads the cards images
     load_cards(cards);
     
-    first_round(players, deck); // deal first round of cards
+    first_hand(players, deck); // deal first round of cards
     
  	while (quit == 0) {
 		
@@ -84,6 +84,9 @@ int main(int argc, char **argv) {
                     // The player asks for another card
 					case SDLK_h:
 						// hit
+						if(current != players->tail)
+						    deal_card(&(current->p_data), deck);
+						    
                         break;
                         
                     // You can't start a new game unless the current game is over.
@@ -111,9 +114,11 @@ int main(int argc, char **argv) {
 					default:
 						break;
 				} // close event switch
+				if(current->p_data.points > BLACKJACK)
+					next_player(&current);
 			} 
         } // close event loop
-        	
+        
         // render game table
         render_table(*players, serif, imgs, renderer);
         // render house cards

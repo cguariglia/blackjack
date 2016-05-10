@@ -85,20 +85,46 @@ void deal_card(player *dest, stack *source) {
 	
 	temp = pop(source);
 	push(&(dest->hand), temp->c_data);
+	
+	// Calculates points after new card has been dealt
+	dest->points = point_calculator(*dest); 
 }
 
-// deal two cards to every player and the house
-void first_round(playerlist *players, stack *deck) {
+// Deal two cards to every player and the house
+void first_hand(playerlist *players, stack *deck) {
 	int i;
 	p_node *cur;
 	
-	// for each player and the house
+	// For each player and the house
 	for(cur = players->head; cur != NULL; cur = cur->next) {
 		for(i = 0; i < 2; i++) // give two cards
 			deal_card(&(cur->p_data), deck);
 		
-		// if last players that recived cards was the house then its done
+		// If last players that recived cards was the house then its done
 		if(cur->next == players->head)
 			break;
 	}
 }
+
+int point_calculator(player _player) {
+	c_node *cur_card;
+	int sum = 0;
+	
+	for(cur_card = _player.hand.top; cur_card != NULL; cur_card = cur_card->next) {
+		if(cur_card->c_data.id <= 9)
+			sum += (cur_card->c_data.id + 1);
+		else if(cur_card->c_data.id >= 10 && cur_card->c_data.id <= 12)
+			sum += 10;
+	}
+	
+	for(cur_card = _player.hand.top; cur_card != NULL; cur_card = cur_card->next) {
+		if(cur_card->c_data.id == 13) {
+			sum += 11;
+			if(sum > 21)
+				sum -= 10;
+		}
+	}
+		
+	return sum;
+}
+	
