@@ -233,18 +233,18 @@ int has_blackjack(player _player) {
 void write_stats(playerlist players) {
 	p_node *cur;
 	FILE *stats;
-    
+
     // open file
     stats = fopen("stats.txt", "w");
-    
+
     // print format
     fprintf(stats, "Player Name | Player Type --> Wins | Losses | Ties | Money\n\n");
-     
+
 	for(cur = players.head; cur != players.tail; cur = cur->next)
 		fprintf(stats, "%s | %s --> %d | %d | %d | %d\n", cur->p_data.name, cur->p_data.type == 1 ? "HU" : "AI", cur->p_data.wins, cur->p_data.losses, cur->p_data.ties, cur->p_data.money);
-	
+
 	fprintf(stats, "\nHouse Profit: %d", players.tail->p_data.money);
-		
+
 	// close file
 	fclose(stats);
 }
@@ -253,12 +253,12 @@ void change_bet(playerlist *players) {
 	p_node *cur;
 	char name[BUFFER], n_bet[BUFFER];
 	int new_bet, args = 1;
-	
+
 	printf("Whose bet do you want to change?\n");
 	fgets(name, BUFFER, stdin);
-	
+
 	name[strlen(name) - 1] = '\0';
-	
+
 	for(cur = players->head; cur != players->tail; cur = cur->next) {
 		if(strcmp(name, cur->p_data.name) == 0) {
 			if(cur->p_data.active == 0) {
@@ -273,7 +273,7 @@ void change_bet(playerlist *players) {
 					fgets(n_bet, BUFFER, stdin);
 					args = sscanf(n_bet, "%d", &new_bet);
 				} while(args != 1);
-				
+
 				cur->p_data.bet = new_bet;
 				printf("%s's bet changed successfully to %d euros.\n", name, new_bet);
 
@@ -281,8 +281,65 @@ void change_bet(playerlist *players) {
 			}
 		}
 	}
-	
+
 	printf("That player is not playing this game! Please try again.");
 }
-				
+
+// load the AI decision tables from a file
+void load_ai_tables(char ***hard, char ***soft) {
+	int i, line = 0, col = 0;
+	char c;
+	FILE *f;
 	
+	// allocate memory for tables
+	*hard = (char **)allocate(sizeof(char *) * 10);
+	*soft = (char **)allocate(sizeof(char *) * 10);
+	for(i = 0; i < 10; i++) {
+		*hard[i] = (char *)allocate(sizeof(char) * 10);
+		*soft[i] = (char *)allocate(sizeof(char) * 7);
+	}
+	
+	f = fopen("ai_config.txt", "r");
+	if(f == NULL) {
+		printf("There was an error while opening the AI configuration file.\n");
+		exit(EXIT_FAILURE);
+	}
+	
+	// load tables
+	c = fgetc(f);
+	while(!feof(f)) {
+		printf("line = %d, col = %d, c = %c\n", line, col, c);	
+		if(c == '\n') {
+			line += 1;
+			col = 0;
+		}
+		else {
+			// load into the hard table	
+			if(line < 10) 
+				*hard[line][col] = c;
+			// load into soft table
+			else if(line > 10 && line < 18)
+				*soft[line - 11][col] = c;
+			
+			col += 1;
+		}
+		
+		c = fgetc(f);
+	}
+	
+	fclose(f);
+}
+
+void print_table(char **table, int lines, int cols) {
+	int i, j;
+	
+	printf("table[%d][%d] = %c\n", 0, 0, table[0][0]);
+	for(i = 0; i < lines; i++) {
+		printf("line %d ", i);
+		for(j = 0; j < cols; j++) {
+			printf("col %d\n", j);
+			printf("%c", table[j][i]);
+		}
+		printf("\n");
+	}
+}
