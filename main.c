@@ -28,16 +28,6 @@ int main(int argc, char **argv) {
     stack *deck;
     int deck_num; //Number of decks chosen by the player
     char **ai_hard, **ai_soft;
-    /*char ai_hard[10][10] = {{'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'},
-							{'H', 'D', 'D', 'D', 'D', 'H', 'H', 'H', 'H', 'H'},
-							{'D', 'D', 'D', 'D', 'D', 'D', 'D', 'D', 'H', 'H'},
-							{'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'},
-							{'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'},
-							{'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'},
-							{'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'},
-							{'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'},
-							{'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'},
-							{'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'}};*/
     
     srand(time(NULL)); // seeds
     
@@ -55,11 +45,11 @@ int main(int argc, char **argv) {
 	printf("Keys:\n(H)it - (S)tand - (Q)uit - (N)ew Game - (B)et - (D)ouble - (A)dd Player - Surrende(r)\n");
 	
 	// TEST FOR AI TABLES!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	load_ai_tables(&ai_hard, &ai_soft);
+	ai_hard = load_ai_tables(ai_hard, ai_soft);
 	printf("loaded tables...\n");
 	print_table(ai_hard, 10, 10);
 	printf("\n");
-	print_table(ai_soft, 7, 10);
+	//print_table(ai_soft, 7, 10);
 	
 	// initialize graphics
 	init_everything(WIDTH_WINDOW, HEIGHT_WINDOW, &serif, imgs, &window, &renderer);

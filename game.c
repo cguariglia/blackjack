@@ -286,17 +286,17 @@ void change_bet(playerlist *players) {
 }
 
 // load the AI decision tables from a file
-void load_ai_tables(char ***hard, char ***soft) {
+char ** load_ai_tables(char **hard, char **soft) {
 	int i, line = 0, col = 0;
 	char c;
 	FILE *f;
 	
 	// allocate memory for tables
-	*hard = (char **)allocate(sizeof(char *) * 10);
-	*soft = (char **)allocate(sizeof(char *) * 10);
+	hard = (char **)allocate(sizeof(char *) * 10);
+	soft = (char **)allocate(sizeof(char *) * 10);
 	for(i = 0; i < 10; i++) {
-		*hard[i] = (char *)allocate(sizeof(char) * 10);
-		*soft[i] = (char *)allocate(sizeof(char) * 7);
+		hard[i] = (char *)allocate(sizeof(char) * 10);
+		soft[i] = (char *)allocate(sizeof(char) * 7);
 	}
 	
 	f = fopen("ai_config.txt", "r");
@@ -308,7 +308,6 @@ void load_ai_tables(char ***hard, char ***soft) {
 	// load tables
 	c = fgetc(f);
 	while(!feof(f)) {
-		printf("line = %d, col = %d, c = %c\n", line, col, c);	
 		if(c == '\n') {
 			line += 1;
 			col = 0;
@@ -316,10 +315,10 @@ void load_ai_tables(char ***hard, char ***soft) {
 		else {
 			// load into the hard table	
 			if(line < 10) 
-				*hard[line][col] = c;
+				hard[line][col] = c;
 			// load into soft table
 			else if(line > 10 && line < 18)
-				*soft[line - 11][col] = c;
+				soft[line - 11][col] = c;
 			
 			col += 1;
 		}
@@ -328,16 +327,14 @@ void load_ai_tables(char ***hard, char ***soft) {
 	}
 	
 	fclose(f);
+	return hard;
 }
 
 void print_table(char **table, int lines, int cols) {
 	int i, j;
 	
-	printf("table[%d][%d] = %c\n", 0, 0, table[0][0]);
 	for(i = 0; i < lines; i++) {
-		printf("line %d ", i);
 		for(j = 0; j < cols; j++) {
-			printf("col %d\n", j);
 			printf("%c", table[j][i]);
 		}
 		printf("\n");

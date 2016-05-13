@@ -22,7 +22,7 @@ void house_plays(player *, stack *, int);
 int has_blackjack(player);
 void write_stats(playerlist);
 void change_bet(playerlist *);
-void load_ai_tables(char ***, char ***);
+char ** load_ai_tables(char **, char **);
 void print_table(char **, int, int);
 
 #endif
