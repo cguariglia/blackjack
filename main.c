@@ -41,11 +41,7 @@ int main(int argc, char **argv) {
 
 	init_deck(&deck, deck_num);
 	
-	// set first player
-	current = players->head; 
-	current->p_data.status = 1;
-	
-	printf("Keys:\n(H)it - (S)tand - (Q)uit - (N)ew Game - (B)et - (D)ouble - Surrende(r)\n");
+	printf("Keys:\n(H)it - (S)tand - (Q)uit - (N)ew Game - (B)et - (D)ouble - (A)dd Player - Surrende(r)\n");
 	
 	// initialize graphics
 	init_everything(WIDTH_WINDOW, HEIGHT_WINDOW, &serif, imgs, &window, &renderer);
@@ -54,21 +50,28 @@ int main(int argc, char **argv) {
     
     first_hand(players, deck, deck_num); // deal first round of cards
     
+	// set first player
+	current = players->head; 
+	current->p_data.status = 1;
+    
  	while (quit == 0) {
 		
         // while there's events to handle
         while (SDL_PollEvent(&event)) {
 			if (event.type == SDL_QUIT) {
 				// The window gets closed
-                quit = 1;
+				quit = 1;
             }
 			else if (event.type == SDL_KEYDOWN) {	
 				switch (event.key.keysym.sym) { 
 					
 				    // You can quit with the 'q' key too
                     case SDLK_q:
-                        // quit
-                        quit = 1;
+                        // quit and write stats file
+                        if(current == players->tail) {
+							quit = 1;
+							write_stats(*players);
+						}
                         break;
                         
                     // Pass to the next player
@@ -95,8 +98,8 @@ int main(int argc, char **argv) {
 						
 						// only start new game if house is finished playing
 						if(current == players->tail) {
-							next_player(&current);
 							first_hand(players, deck, deck_num);
+							next_player(&current);
 						}
 							
                         break;
@@ -107,10 +110,18 @@ int main(int argc, char **argv) {
 						
 					case SDLK_d:
 						// double
+						if(current != players->tail) {
+							current->p_data.bet *= 2;
+							current->p_data.status = DOUBLE_STATUS;
+							deal_card(&(current->p_data), deck, deck_num);
+							next_player(&current);
+						}
 						break;
 						
 					case SDLK_b:
 						// bet
+						if(current == players->tail)
+							change_bet(players);
 						break;
 						
 					default:
@@ -120,15 +131,11 @@ int main(int argc, char **argv) {
         } // close event loop
         
         // check if player bust
-        if(current->p_data.points > BLACKJACK && current != players->tail) {
-			current->p_data.status = BUST_STATUS;
+        if(current->p_data.points > 21 && current != players->tail)
 			next_player(&current);
-		}
 		// check if player has blackjack
-        else if(has_blackjack(current->p_data) && current != players->tail) {
-			current->p_data.status = BLACKJACK_STATUS;
+        else if(has_blackjack(current->p_data) && current != players->tail)
 			next_player(&current);
-		}
         
         // time for da houzz
         if(current == players->tail && players->tail->p_data.status == 1) {
@@ -143,7 +150,7 @@ int main(int argc, char **argv) {
         // render player cards
         render_player_cards(*players, cards, renderer);
         // render bust/game over rectangle
-        //render_bust(serif, large_serif, renderer, bust, money, bet, &game_over);
+        render_overlay(serif, renderer, *players);
         // render in the screen all changes above
         SDL_RenderPresent(renderer);
     	// add a delay

@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "general.h"
 #include "game.h"
@@ -8,7 +9,8 @@
 void next_player(p_node **cur_player) {
 	
 	// change status of current player (before changing)
-	(*cur_player)->p_data.status = 0;
+	if((*cur_player)->p_data.status == 1)
+		(*cur_player)->p_data.status = 0;
     	 
 	do {
 		*cur_player = (*cur_player)->next;
@@ -106,9 +108,10 @@ void first_hand(playerlist *players, stack *deck, int deck_num) {
 		free_stack(&(cur->p_data.hand));
 		
 		if(cur->p_data.active == 1) {
-			for(i = 0; i < 2; i++) // give two cards
+			cur->p_data.status = 0;
+			for(i = 0; i < 2; i++)
 				deal_card(&(cur->p_data), deck, deck_num);
-		
+			
 			// If the house has recieved cards then stop dealing
 			if(cur->next == players->head)
 				break;
@@ -143,38 +146,60 @@ void end_game(playerlist *players) {
 	
 	// Calculates money and wins/losses/ties for each player and the house
 	for(cur_player = players->head; cur_player != players->tail; cur_player = cur_player->next) {
+		// Player has left the game
 		if(cur_player->p_data.active == 0)
 			continue;
 		
-		if(cur_player->p_data.points == BLACKJACK && cur_player->p_data.hand.size == 2 && players->tail->p_data.points != BLACKJACK) {
+		// Player has surrendered
+		if(cur_player->p_data.status == SURRENDER_STATUS) {
+			cur_player->p_data.money -= (int)(cur_player->p_data.bet / 2); 
+			players->tail->p_data.money += (int)(cur_player->p_data.bet / 2);
+			cur_player->p_data.losses += 1;
+			cur_player->p_data.status = 0; // Gets player status back to normal
+		}
+			
+		// Player has a blackjack (on the first hand) and the house doesn't
+		else if(has_blackjack(cur_player->p_data) == 1 && players->tail->p_data.points != BLACKJACK) {
 			cur_player->p_data.money += (int)(cur_player->p_data.bet * 1.5);
 			players->tail->p_data.money -= (int)(cur_player->p_data.bet * 1.5);
 			cur_player->p_data.wins += 1;
 		}
-		else if(players->tail->p_data.points > BLACKJACK) {
+		// Player has busted
+		else if(cur_player->p_data.points > BLACKJACK) {
 			cur_player->p_data.money -= cur_player->p_data.bet;
 			players->tail->p_data.money += cur_player->p_data.bet;
-			cur_player->p_data.wins += 1;
-		}
-		else if(players->tail->p_data.points == BLACKJACK && cur_player->p_data.points != BLACKJACK) {
-			cur_player->p_data.money -= cur_player->p_data.bet;
-			players->tail->p_data.money -= cur_player->p_data.bet;
 			cur_player->p_data.losses += 1;
 		}
-		else if(players->tail->p_data.points <= BLACKJACK) {
+		// The house has a blackjack
+		else if(players->tail->p_data.points == BLACKJACK && cur_player->p_data.points != BLACKJACK) {
+			cur_player->p_data.money -= cur_player->p_data.bet;
+			players->tail->p_data.money += cur_player->p_data.bet;
+			cur_player->p_data.losses += 1;
+		}
+		// The house doesn't have a blackjack
+		else if(players->tail->p_data.points < BLACKJACK) {
+			// But the player has more points
 			if(cur_player->p_data.points > players->tail->p_data.points) {
 				cur_player->p_data.money += cur_player->p_data.bet;
 				players->tail->p_data.money -= cur_player->p_data.bet;
 				cur_player->p_data.wins += 1;
 			}
+			// But the player has less points
 			else {
 				cur_player->p_data.money -= cur_player->p_data.bet;
 				players->tail->p_data.money += cur_player->p_data.bet;
 				cur_player->p_data.losses += 1;
 			}
 		}
+		// Otherwise, there's a tie
 		else
 			cur_player->p_data.ties += 1;
+			
+		// reset player bet if they did a double
+		if(cur_player->p_data.status == DOUBLE_STATUS) {
+			cur_player->p_data.bet /= 2;
+			cur_player->p_data.status = 0;
+		}
 	}
 }
 
@@ -204,3 +229,60 @@ int has_blackjack(player _player) {
 	else
 		return 0;
 }
+
+void write_stats(playerlist players) {
+	p_node *cur;
+	FILE *stats;
+    
+    // open file
+    stats = fopen("stats.txt", "w");
+    
+    // print format
+    fprintf(stats, "Player Name | Player Type --> Wins | Losses | Ties | Money\n\n");
+     
+	for(cur = players.head; cur != players.tail; cur = cur->next)
+		fprintf(stats, "%s | %s --> %d | %d | %d | %d\n", cur->p_data.name, cur->p_data.type == 1 ? "HU" : "AI", cur->p_data.wins, cur->p_data.losses, cur->p_data.ties, cur->p_data.money);
+	
+	fprintf(stats, "\nHouse Profit: %d", players.tail->p_data.money);
+		
+	// close file
+	fclose(stats);
+}
+
+void change_bet(playerlist *players) {
+	p_node *cur;
+	char name[BUFFER], n_bet[BUFFER];
+	int new_bet, args = 1;
+	
+	printf("Whose bet do you want to change?\n");
+	fgets(name, BUFFER, stdin);
+	
+	name[strlen(name) - 1] = '\0';
+	
+	for(cur = players->head; cur != players->tail; cur = cur->next) {
+		if(strcmp(name, cur->p_data.name) == 0) {
+			if(cur->p_data.active == 0) {
+				printf("That player has already left the table!\n");
+				return;
+			}
+			else {
+				do {
+					if(args != 1)
+						printf("That wasn't a valid number! Please try again.\n");
+					printf("New bet: ");
+					fgets(n_bet, BUFFER, stdin);
+					args = sscanf(n_bet, "%d", &new_bet);
+				} while(args != 1);
+				
+				cur->p_data.bet = new_bet;
+				printf("%s's bet changed successfully to %d euros.\n", name, new_bet);
+
+				return;
+			}
+		}
+	}
+	
+	printf("That player is not playing this game! Please try again.");
+}
+				
+	

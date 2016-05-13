@@ -81,12 +81,20 @@ void render_table(playerlist _players, TTF_Font *_font, SDL_Surface *_img[], SDL
 }
 
 void render_house_cards(player _house, SDL_Surface **_cards, SDL_Renderer*_renderer) {
-    int cards, x, y;
+    int cards, x, y, i, hand_size;
     int div = WIDTH_WINDOW/CARD_WIDTH;
     c_node *cur;
 
+	hand_size = _house.hand.size;
+
     // Drawing all house cards
-    for(cards = 0, cur = _house.hand.top; cur != NULL; cur = cur->next, cards++) {
+    for(cards = 0; cards < hand_size; cards++) {
+		cur = _house.hand.top;
+		
+		// 'walk' to card to render
+		for(i = 0; i < hand_size - cards - 1; i++)
+			cur = cur->next;
+		
         // calculate its position
         x =(div/2-_house.hand.size/2+cards)*CARD_WIDTH + 15;
         y =(int)(0.26f*HEIGHT_WINDOW);
@@ -95,7 +103,7 @@ void render_house_cards(player _house, SDL_Surface **_cards, SDL_Renderer*_rende
         if(_house.hand.size == 2 && cards == 1 && _house.active != 2)
             render_card(x, y, UPSIDE_DOWN_CARD, _cards, _renderer);
         else
-            render_card(x, y, cur->c_data.id - 1, _cards, _renderer);
+            render_card(x, y, (cur->c_data.id - 1) + (13 * cur->c_data.suit), _cards, _renderer);
     }
 
 }
@@ -329,42 +337,53 @@ SDL_Renderer * create_renderer(int width, int height, SDL_Window *_window)
 
 /**
  *Renders the word bust when the player has busted, 'no money' when the player has run out of money and 'game over' when that happens to all players.
- *\param bust if a player's index == 1, then that player has buste
  *\param money a player's current money
  *\param bet corresponding to each player 
- *\param game_over if this variable >= 4 then no players have money remaining
 **/
-/*void render_bust(TTF_Font *_font, SDL_Renderer *_renderer, player)
-{
-    SDL_Rect bustRect, overRect;
+void render_overlay(TTF_Font *_font, SDL_Renderer *_renderer, playerlist players) {
+    SDL_Rect bustRect;
     SDL_Color red =  {255, 0, 0}; 
     SDL_Color yellow = {255, 255, 51};
+    SDL_Color green = {0, 201, 0};
     int separatorPos =(int)(0.95f*WIDTH_WINDOW);
-    int i;
+    int i = 0;
     char busted[4];
     char no_play[9];
+    char blackjack[10];
+    p_node *cur_player;
    
     SDL_SetRenderDrawColor(_renderer, 0, 0, 0, 255);
    
-    for(i = 0; i < MAX_PLAYERS; i++) {	
-		bustRect.y =(int)(0.55f*HEIGHT_WINDOW) + 100;
-		// Renders "bust" if the player has busted
-		if(bust[i] == 1) {
-			bustRect.x = i*(separatorPos/4-5)+80;
-			bustRect.w = 50;
-			bustRect.h = 20;
-			SDL_RenderFillRect(_renderer, &bustRect);
-			sprintf(busted, "BUST");
-			render_text(bustRect.x + 4, bustRect.y - 3, busted, _font, &red, _renderer);
-		}
-		// Renders "no money" if the player has no money
-		if(money[i] < bet[i]) {
-			bustRect.x = i*(separatorPos/4-5)+60;
-			bustRect.w = 100;
-			bustRect.h = 20;
-			SDL_RenderFillRect(_renderer, &bustRect);
-			sprintf(no_play, "NO MONEY");
-			render_text(bustRect.x + 7, bustRect.y - 3, no_play, _font, &yellow, _renderer);
+    for(cur_player = players.head; cur_player->p_data.type != players.tail->p_data.type; cur_player = cur_player->next) {	
+		if(cur_player->p_data.active == 1) {
+			bustRect.y =(int)(0.55f*HEIGHT_WINDOW) + 100;
+			// Renders "bust" if the player has busted
+				if(has_blackjack(cur_player->p_data) == 1) {
+					bustRect.x = i*(separatorPos/4-5)+60;
+					bustRect.w = 110;
+					bustRect.h = 20;
+					SDL_RenderFillRect(_renderer, &bustRect);
+					sprintf(blackjack, "BLACKJACK");
+					render_text(bustRect.x + 7, bustRect.y - 3, blackjack, _font, &yellow, _renderer);
+				}
+				if(cur_player->p_data.points > 21) {
+					bustRect.x = i*(separatorPos/4-5)+80;
+					bustRect.w = 50;
+					bustRect.h = 20;
+					SDL_RenderFillRect(_renderer, &bustRect);
+					sprintf(busted, "BUST");
+					render_text(bustRect.x + 4, bustRect.y - 3, busted, _font, &red, _renderer);
+				}
+				// Renders "no money" if the player has no money
+				if(cur_player->p_data.money < cur_player->p_data.bet) {
+					bustRect.x = i*(separatorPos/4-5)+60;
+					bustRect.w = 100;
+					bustRect.h = 20;
+					SDL_RenderFillRect(_renderer, &bustRect);
+					sprintf(no_play, "NO MONEY");
+					render_text(bustRect.x + 7, bustRect.y - 3, no_play, _font, &green, _renderer);
+				}
+			i += 1;
 		}
 	}
- }*/
+ }

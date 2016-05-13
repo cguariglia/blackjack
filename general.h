@@ -36,7 +36,8 @@ typedef struct {
 	int ties;
 	int active; // 0 - player has left the table, 1 - player is playing
 	int points;
-	int status; // 0 - inactive, 1 - active, 2 - blackjack, 3 - bust
+	int status; // 0 - inactive, 1 - active, 2 - double, 3 - surrender
+	int seat; // From 1 to 4, left to right
 } player;
 
 // Defines node used to create player list

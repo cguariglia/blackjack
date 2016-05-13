@@ -121,7 +121,7 @@ void read_settings(char *filename, playerlist *players, int *deck_num) {
 	// initialize player variables
 	temp.wins = 0; temp.losses = 0; temp.ties = 0;
 	temp.points = 0; temp.active = 1; temp.status = 0;
-	temp.type = 0;
+	temp.type = 0; temp.seat = 0;
 	
 	// initialize player hand
 	temp.hand = *((stack *)allocate(sizeof(stack)));
@@ -168,6 +168,8 @@ void read_settings(char *filename, playerlist *players, int *deck_num) {
 			printf("Invalid player type in line %d! Please try again.", i + 2);
 			exit(EXIT_FAILURE);
 		}
+		
+		temp.seat = i + 1;
 		
 		insert_node(players, temp, players->size);
 	}

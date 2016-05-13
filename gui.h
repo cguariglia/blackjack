@@ -34,5 +34,6 @@ void render_house_cards(player, SDL_Surface **, SDL_Renderer *);
 void render_player_cards(playerlist, SDL_Surface **, SDL_Renderer *);
 void load_cards(SDL_Surface **);
 void unload_cards(SDL_Surface **);
+void render_overlay(TTF_Font *, SDL_Renderer *, playerlist);
 
 #endif
