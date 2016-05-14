@@ -286,17 +286,17 @@ void change_bet(playerlist *players) {
 }
 
 // load the AI decision tables from a file
-void load_ai_tables(char ***hard, char ***soft) {
+void load_ai_tables(ai_info *info) {
 	int i, line = 0, col = 0;
-	char c;
+	char c, **hard, **soft;
 	FILE *f;
 
 	// allocate memory for tables
-	*hard = (char **)allocate(sizeof(char *) * 10);
-	*soft = (char **)allocate(sizeof(char *) * 7);
+	hard = (char **)allocate(sizeof(char *) * 10);
+	soft = (char **)allocate(sizeof(char *) * 7);
 	for(i = 0; i < 10; i++) {
-		(*hard)[i] = (char *)allocate(sizeof(char) * 10);
-		(*soft)[i] = (char *)allocate(sizeof(char) * 10);
+		hard[i] = (char *)allocate(sizeof(char) * 10);
+		soft[i] = (char *)allocate(sizeof(char) * 10);
 	}
 
 	f = fopen("ai_config.txt", "r");
@@ -315,16 +315,20 @@ void load_ai_tables(char ***hard, char ***soft) {
 		else {
 			// load into the hard table
 			if(line < 10)
-				(*hard)[line][col] = c;
+				hard[line][col] = c;
 			// load into soft table
 			else if(line > 10 && line < 18)
-				(*soft)[line - 11][col] = c;
+				soft[line - 11][col] = c;
 
 			col += 1;
 		}
 
 		c = fgetc(f);
 	}
+
+	// save tables to info struct
+	info->hard_table = hard;
+	info->soft_table = soft;
 
 	fclose(f);
 }
@@ -340,13 +344,14 @@ void print_table(char **table, int lines, int cols) {
 	}
 }
 
-void play_ai(player *ai, player house, p_node **current, stack *deck, int decks, char **hard_table, char **soft_table) {
+void play_ai(p_node **current, player house, stack *deck, int decks, ai_info info) {
 	int aces = 0, line, col;
 	char decision;
 	card house_card;
 	c_node *cur;
+	player *ai = &((*current)->p_data);
 
-	house_card = house.hand.top->c_data; // house's visible card
+	house_card = house.hand.top->next->c_data; // house's visible card
 
 	// count aces
 	for(cur = ai->hand.top; cur != NULL; cur = cur->next)
@@ -370,7 +375,7 @@ void play_ai(player *ai, player house, p_node **current, stack *deck, int decks,
 		else
 			line = ai->points - 8;
 
-		decision = hard_table[line][col];
+		decision = info.hard_table[line][col];
 	}
 	// soft hand
 	else {
@@ -379,10 +384,11 @@ void play_ai(player *ai, player house, p_node **current, stack *deck, int decks,
 		else
 			line = ai->points - 13;
 
-		decision = soft_table[line][col];
+		decision = info.soft_table[line][col];
 	}
 	
 	// make move
+	printf("points: %d\tdecision: %c\n", ai->points, decision);
 	if(decision == 'H') { // hit
 		deal_card(ai, deck, decks);
 	}

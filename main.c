@@ -25,10 +25,10 @@ int main(int argc, char **argv) {
 	int ai_delay = 1000;
     int quit = 0;
     playerlist *players;
+	ai_info ai_tables; // tables for AI's and count for card counting
     p_node *current;
     stack *deck;
     int deck_num; //Number of decks chosen by the player
-    char **ai_hard, **ai_soft;
     
     srand(time(NULL)); // seeds
     
@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
 		return EXIT_FAILURE;
 	}
 	
-    players = (playerlist *)allocate(sizeof(playerlist));
+	players = (playerlist *)allocate(sizeof(playerlist));
     read_settings(argv[1], players, &deck_num);
 
 	init_deck(&deck, deck_num);
@@ -46,7 +46,9 @@ int main(int argc, char **argv) {
 	printf("Keys:\n(H)it - (S)tand - (Q)uit - (N)ew Game - (B)et - (D)ouble - (A)dd Player - Surrende(r)\n");
 	
 	// load AI decision info
-	load_ai_tables(&ai_hard, &ai_soft);
+	load_ai_tables(&ai_tables);
+	print_table(ai_tables.hard_table, 10, 10);
+	printf("\n"); print_table(ai_tables.soft_table, 7, 10);
 	
 	// initialize graphics
 	init_everything(WIDTH_WINDOW, HEIGHT_WINDOW, &serif, imgs, &window, &renderer);
@@ -139,7 +141,7 @@ int main(int argc, char **argv) {
         
 		// them AI's are getting smart
 		if(current->p_data.type == AI_TYPE) {
-			play_ai(&(current->p_data), players->tail->p_data, &current, deck, deck_num, ai_hard, ai_soft);
+			play_ai(&current, players->tail->p_data, deck, deck_num, ai_tables);
 			SDL_Delay(ai_delay);
 		}
 
