@@ -115,6 +115,10 @@ int main(int argc, char **argv) {
                         
                     case SDLK_r:
 						// surrender
+						if(current != players->tail) {
+							current->p_data.status = SURRENDER_STATUS;
+							next_player(&current);
+						}
 						break;
 						
 					case SDLK_d:

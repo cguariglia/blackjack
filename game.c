@@ -402,7 +402,7 @@ void play_ai(p_node **current, player house, stack *deck, int decks, ai_info inf
 		next_player(current);
 	}
 	else if(decision == 'R') { // surrender
-		printf("ai's surrender not implemented!\n");
+		ai->status = SURRENDER_STATUS;
 		next_player(current);
 	}
 }

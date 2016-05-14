@@ -6,7 +6,7 @@
 #define BUFFER 256
 #define MAX_NAME 8
 #define HOUSE_TYPE 2
-#define EA_TYPE 1
+#define AI_TYPE 1
 	
 typedef struct {
 	int id;
