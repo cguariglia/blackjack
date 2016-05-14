@@ -361,7 +361,7 @@ void play_ai(p_node **current, player house, stack *deck, int decks, ai_info inf
 	// position in the table
 	if(house_card.id == ACE_ID)
 		col = 9;
-	else if(house_card.id >= 9 || house_card.id <= 12)
+	else if(house_card.id >= 9 && house_card.id <= 12)
 		col = 8;
 	else
 		col = house_card.id - 1;
@@ -374,7 +374,7 @@ void play_ai(p_node **current, player house, stack *deck, int decks, ai_info inf
 			line = 9;
 		else
 			line = ai->points - 8;
-
+		
 		decision = info.hard_table[line][col];
 	}
 	// soft hand
@@ -388,7 +388,6 @@ void play_ai(p_node **current, player house, stack *deck, int decks, ai_info inf
 	}
 	
 	// make move
-	printf("points: %d\tdecision: %c\n", ai->points, decision);
 	if(decision == 'H') { // hit
 		deal_card(ai, deck, decks);
 	}
