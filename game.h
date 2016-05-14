@@ -5,6 +5,7 @@
 
 #define BUFFER 256
 #define BLACKJACK 21
+#define ACE_ID 13
 
 #define DOUBLE_STATUS 2
 #define SURRENDER_STATUS 3
@@ -24,5 +25,6 @@ void write_stats(playerlist);
 void change_bet(playerlist *);
 void load_ai_tables(char ***, char ***);
 void print_table(char **, int, int);
+void play_ai(player *, player, p_node **, stack *, int, char **, char **);
 
 #endif

@@ -22,6 +22,7 @@ int main(int argc, char **argv) {
     SDL_Surface *cards[MAX_DECK_SIZE+1], *imgs[2];
     SDL_Event event;
     int delay = 33;
+	int ai_delay = 1000;
     int quit = 0;
     playerlist *players;
     p_node *current;
@@ -44,12 +45,8 @@ int main(int argc, char **argv) {
 	
 	printf("Keys:\n(H)it - (S)tand - (Q)uit - (N)ew Game - (B)et - (D)ouble - (A)dd Player - Surrende(r)\n");
 	
-	// TEST FOR AI TABLES!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	// load AI decision info
 	load_ai_tables(&ai_hard, &ai_soft);
-	printf("loaded tables...\n");
-	print_table(ai_hard, 10, 10);
-	printf("\n");
-	//print_table(ai_soft, 7, 10);
 	
 	// initialize graphics
 	init_everything(WIDTH_WINDOW, HEIGHT_WINDOW, &serif, imgs, &window, &renderer);
@@ -64,6 +61,8 @@ int main(int argc, char **argv) {
     
  	while (quit == 0) {
 		
+		// change AI to here!!!!!!!!!!!!!!!!!!!!!!!!!!
+
         // while there's events to handle
         while (SDL_PollEvent(&event)) {
 			if (event.type == SDL_QUIT) {
@@ -138,6 +137,12 @@ int main(int argc, char **argv) {
 			} 
         } // close event loop
         
+		// them AI's are getting smart
+		if(current->p_data.type == AI_TYPE) {
+			play_ai(&(current->p_data), players->tail->p_data, &current, deck, deck_num, ai_hard, ai_soft);
+			SDL_Delay(ai_delay);
+		}
+
         // check if player bust
         if(current->p_data.points > 21 && current != players->tail)
 			next_player(&current);

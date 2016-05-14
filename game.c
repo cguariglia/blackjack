@@ -339,3 +339,64 @@ void print_table(char **table, int lines, int cols) {
 		printf("\n");
 	}
 }
+
+void play_ai(player *ai, player house, p_node **current, stack *deck, int decks, char **hard_table, char **soft_table) {
+	int aces = 0, line, col;
+	char decision;
+	card house_card;
+	c_node *cur;
+
+	house_card = house.hand.top->c_data; // house's visible card
+
+	// count aces
+	for(cur = ai->hand.top; cur != NULL; cur = cur->next)
+		if(cur->c_data.id == ACE_ID)
+			aces += 1;
+
+	// position in the table
+	if(house_card.id == ACE_ID)
+		col = 9;
+	else if(house_card.id >= 9 || house_card.id <= 12)
+		col = 8;
+	else
+		col = house_card.id - 1;
+
+	// hard hand
+	if(aces == 0) { 
+		if(ai->points <= 8)
+			line = 0;
+		else if(ai->points >= 17)
+			line = 9;
+		else
+			line = ai->points - 8;
+
+		decision = hard_table[line][col];
+	}
+	// soft hand
+	else {
+		if(ai->points >= 19)
+			line = 6;
+		else
+			line = ai->points - 13;
+
+		decision = soft_table[line][col];
+	}
+	
+	// make move
+	if(decision == 'H') { // hit
+		deal_card(ai, deck, decks);
+	}
+	else if(decision == 'S') { // stand
+		next_player(current);
+	}
+	else if(decision == 'D') { // double
+		ai->bet *= 2;
+		ai->status = DOUBLE_STATUS;
+		deal_card(ai, deck, decks);
+		next_player(current);
+	}
+	else if(decision == 'R') { // surrender
+		printf("ai's surrender not implemented!\n");
+		next_player(current);
+	}
+}
