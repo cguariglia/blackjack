@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
 	printf("Keys:\n(H)it - (S)tand - (Q)uit - (N)ew Game - (B)et - (D)ouble - (A)dd Player - Surrende(r)\n");
 	
 	// TEST FOR AI TABLES!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	ai_hard = load_ai_tables(ai_hard, ai_soft);
+	load_ai_tables(&ai_hard, &ai_soft);
 	printf("loaded tables...\n");
 	print_table(ai_hard, 10, 10);
 	printf("\n");
