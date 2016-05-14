@@ -4,6 +4,9 @@
 #include "general.h"
 
 #define BUFFER 256
+
+#define MAX_PLAYERS 4
+
 #define BLACKJACK 21
 #define ACE_ID 13
 

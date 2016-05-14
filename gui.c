@@ -12,12 +12,13 @@
 void render_table(playerlist _players, TTF_Font *_font, SDL_Surface *_img[], SDL_Renderer *_renderer) {
     SDL_Color white = {255, 255, 255}; // White
     SDL_Color red =  {255, 0, 0}; // Red
-    char name_money_str[STRING_SIZE];
+    SDL_Color grey = {255,255,0};
+    char name_money_str[STRING_SIZE], add[STRING_SIZE];
     SDL_Texture *table_texture;
     SDL_Rect tableSrc, tableDest, playerRect;
     int separatorPos =(int)(0.95f*WIDTH_WINDOW); // Seperates the left from the right part of the window
     //int height;
-    p_node *cur;
+    p_node *cur = _players.head;
     int i = 0;
     int height;
 
@@ -42,37 +43,47 @@ void render_table(playerlist _players, TTF_Font *_font, SDL_Surface *_img[], SDL
     height = render_logo(separatorPos, 0, _img[1], _renderer);
 
     // Render the student name
-    height += render_text(separatorPos+3*MARGIN, height, "THIS IS AN ALFAFA VERSION", _font, &red, _renderer);
+    height += render_text(separatorPos+3*MARGIN, height, "THIS IS BETATA VERSION", _font, &red, _renderer);
 
     // Render the student number
-    render_text(separatorPos+3*MARGIN, height, "BUY WHOLE GAME PLZ", _font, &red, _renderer);
-
-    // Renders the squares + name for each player
-    SDL_SetRenderDrawColor(_renderer, 255, 255, 255, 255);
+    render_text(separatorPos+3*MARGIN, height, "GIB MONEY PLZ", _font, &red, _renderer);
 
     // Renders the areas for each player: names and money too !
-    for(cur = _players.head; cur->p_data.type != HOUSE_TYPE; cur = cur->next) {
-		if(cur->p_data.active == 0)
+    while(cur->p_data.type != HOUSE_TYPE) {
+		// Either the player isn't playing or it's already been rendered
+		if(cur->p_data.active == 0 || cur->p_data.seat < i) {
+			cur = cur->next;
 			continue;
+		}
 		
 		playerRect.x = i*(separatorPos/4-5)+10;
         playerRect.y =(int)(0.55f*HEIGHT_WINDOW);
         playerRect.w = separatorPos/4-5;
         playerRect.h =(int)(0.42f*HEIGHT_WINDOW);
         sprintf(name_money_str, "%s -- %d euros", cur->p_data.name, cur->p_data.money);
+        sprintf(add, "No Player");
         
+        // A seat hasn't been rendered, because there is no player in that seat
+        if(cur->p_data.seat > (i + 1)) {
+            SDL_SetRenderDrawColor(_renderer, 255,255,0, 255);
+            render_text(playerRect.x + 20, playerRect.y - 30, add, _font, &grey, _renderer);
+			SDL_RenderDrawRect(_renderer, &playerRect);
+			i += 1;
+			continue;
+		}
         // Renders the active player in red
-        if(cur->p_data.status == 1) {
+        else if(cur->p_data.status == 1) {
             SDL_SetRenderDrawColor(_renderer, 255, 0, 0, 255);
-            render_text(playerRect.x+20, playerRect.y-30, name_money_str, _font, &red, _renderer);
+            render_text(playerRect.x + 20, playerRect.y - 30, name_money_str, _font, &red, _renderer);
         }
         // All other players are rendered in white
         else {
             SDL_SetRenderDrawColor(_renderer, 255, 255, 255, 255);
-            render_text(playerRect.x+20, playerRect.y-30, name_money_str, _font, &white, _renderer);
+            render_text(playerRect.x + 20, playerRect.y - 30, name_money_str, _font, &white, _renderer);
         }
         SDL_RenderDrawRect(_renderer, &playerRect);
         
+        cur = cur->next;
         i += 1;
     }
 	

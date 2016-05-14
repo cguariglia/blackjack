@@ -200,6 +200,9 @@ void end_game(playerlist *players) {
 			cur_player->p_data.bet /= 2;
 			cur_player->p_data.status = 0;
 		}
+		
+		if(cur_player->p_data.money < cur_player->p_data.bet)
+			cur_player->p_data.active = 0;
 	}
 }
 

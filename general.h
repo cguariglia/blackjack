@@ -37,7 +37,7 @@ typedef struct {
 	int active; // 0 - player has left the table, 1 - player is playing
 	int points;
 	int status; // 0 - inactive, 1 - active, 2 - double, 3 - surrender
-	int seat; // From 1 to 4, left to right
+	int seat; // From 1 to 4, left to right. 5 is the house.
 } player;
 
 // Defines node used to create player list

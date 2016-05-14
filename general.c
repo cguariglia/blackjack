@@ -179,6 +179,7 @@ void read_settings(char *filename, playerlist *players, int *deck_num) {
 	// Initializes house
 	temp.type = 2;
 	temp.status = 0;
+	temp.seat = 5;
 	sprintf(temp.name, "_house_");
 
 	insert_node(players, temp, players->size);
