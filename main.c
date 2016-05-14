@@ -47,8 +47,6 @@ int main(int argc, char **argv) {
 	
 	// load AI decision info
 	load_ai_tables(&ai_tables);
-	print_table(ai_tables.hard_table, 10, 10);
-	printf("\n"); print_table(ai_tables.soft_table, 7, 10);
 	
 	// initialize graphics
 	init_everything(WIDTH_WINDOW, HEIGHT_WINDOW, &serif, imgs, &window, &renderer);
@@ -63,8 +61,11 @@ int main(int argc, char **argv) {
     
  	while (quit == 0) {
 		
-		// change AI to here!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+		// them AI's are getting smart
+		if(current->p_data.type == AI_TYPE) {
+			SDL_Delay(ai_delay);
+			play_ai(&current, players->tail->p_data, deck, deck_num, ai_tables);
+		}
         // while there's events to handle
         while (SDL_PollEvent(&event)) {
 			if (event.type == SDL_QUIT) {
@@ -142,12 +143,6 @@ int main(int argc, char **argv) {
 				} // close event switch
 			} 
         } // close event loop
-        
-		// them AI's are getting smart
-		if(current->p_data.type == AI_TYPE) {
-			play_ai(&current, players->tail->p_data, deck, deck_num, ai_tables);
-			SDL_Delay(ai_delay);
-		}
 
         // check if player bust
         if(current->p_data.points > 21 && current != players->tail)
