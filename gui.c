@@ -11,16 +11,16 @@
 // Renders the playing table(player squares, names, etc) and sidebar
 void render_table(playerlist _players, TTF_Font *_font, SDL_Surface *_img[], SDL_Renderer *_renderer) {
     SDL_Color white = {255, 255, 255}; // White
+    SDL_Color black = {0, 0, 0}; // Black
     SDL_Color red =  {255, 0, 0}; // Red
     SDL_Color grey = {255,255,0};
-    char name_money_str[STRING_SIZE], add[STRING_SIZE];
+    char name_money_str[STRING_SIZE], add[STRING_SIZE], info_str[STRING_SIZE];
     SDL_Texture *table_texture;
     SDL_Rect tableSrc, tableDest, playerRect;
     int separatorPos =(int)(0.95f*WIDTH_WINDOW); // Seperates the left from the right part of the window
-    //int height;
     p_node *cur = _players.head;
     int i = 0;
-    int height;
+    int height = 0;
 
     // Set color of renderer to some color
     SDL_SetRenderDrawColor(_renderer, 255, 255, 255, 255);
@@ -42,12 +42,6 @@ void render_table(playerlist _players, TTF_Font *_font, SDL_Surface *_img[], SDL
     // Render the IST Logo
     height = render_logo(separatorPos, 0, _img[1], _renderer);
 
-    // Render the student name
-    height += render_text(separatorPos+3*MARGIN, height, "THIS IS BETATA VERSION", _font, &red, _renderer);
-
-    // Render the student number
-    render_text(separatorPos+3*MARGIN, height, "GIB MONEY PLZ", _font, &red, _renderer);
-
     // Renders the areas for each player: names and money too !
     while(cur->p_data.type != HOUSE_TYPE) {
 		// Either the player isn't playing or it's already been rendered
@@ -55,6 +49,14 @@ void render_table(playerlist _players, TTF_Font *_font, SDL_Surface *_img[], SDL
 			cur = cur->next;
 			continue;
 		}
+		
+		// Render side information: name | type
+		sprintf(info_str, "%s | %s", cur->p_data.name, cur->p_data.status == AI_TYPE ? "AI":"HU");
+		height += render_text(separatorPos+3*MARGIN, height, info_str, _font, &black, _renderer);
+		// Render side information: Money
+		sprintf(info_str, "Money: %d", cur->p_data.money);
+		height += render_text(separatorPos+3*MARGIN, height, info_str, _font, &black, _renderer);
+		height += 15; // Leave a space before the next player
 		
 		playerRect.x = i*(separatorPos/4-5)+10;
         playerRect.y =(int)(0.55f*HEIGHT_WINDOW);
@@ -86,6 +88,13 @@ void render_table(playerlist _players, TTF_Font *_font, SDL_Surface *_img[], SDL
         cur = cur->next;
         i += 1;
     }
+
+	
+    // Render the student name
+    height += render_text(separatorPos+3*MARGIN, height, "THIS IS BETATA VERSION", _font, &red, _renderer);
+
+    // Render the student number
+    render_text(separatorPos+3*MARGIN, height, "GIB MONEY PLZ", _font, &red, _renderer);
 	
     // Destroy everything
     SDL_DestroyTexture(table_texture);
