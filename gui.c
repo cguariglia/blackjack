@@ -127,8 +127,11 @@ void render_player_cards(playerlist players, SDL_Surface **_cards, SDL_Renderer*
 
     // For every card of every player
     for(cur_player = players.head; cur_player->p_data.type != HOUSE_TYPE; cur_player = cur_player->next) {
-		if(cur_player->p_data.active == 0)
+		if(cur_player->p_data.active == 0 || cur_player->p_data.seat < num_player)
 			continue;
+		
+		while(cur_player->p_data.seat > (num_player + 1))
+			num_player += 1;
 			
 		hand_size = cur_player->p_data.hand.size;
         for(cards = 0; cards < hand_size; cards++) {
@@ -355,11 +358,9 @@ void render_overlay(TTF_Font *_font, SDL_Renderer *_renderer, playerlist players
     SDL_Rect bustRect;
     SDL_Color red =  {255, 0, 0}; 
     SDL_Color yellow = {255, 255, 51};
-    SDL_Color green = {0, 201, 0};
     int separatorPos =(int)(0.95f*WIDTH_WINDOW);
     int i = 0;
     char busted[4];
-    char no_play[9];
     char blackjack[10];
     p_node *cur_player;
    
@@ -367,6 +368,9 @@ void render_overlay(TTF_Font *_font, SDL_Renderer *_renderer, playerlist players
    
     for(cur_player = players.head; cur_player->p_data.type != players.tail->p_data.type; cur_player = cur_player->next) {	
 		if(cur_player->p_data.active == 1) {
+			while(cur_player->p_data.seat > (i + 1))
+				i += 1;
+			
 			bustRect.y =(int)(0.55f*HEIGHT_WINDOW) + 100;
 			// Renders "bust" if the player has busted
 				if(has_blackjack(cur_player->p_data) == 1) {
@@ -384,15 +388,6 @@ void render_overlay(TTF_Font *_font, SDL_Renderer *_renderer, playerlist players
 					SDL_RenderFillRect(_renderer, &bustRect);
 					sprintf(busted, "BUST");
 					render_text(bustRect.x + 4, bustRect.y - 3, busted, _font, &red, _renderer);
-				}
-				// Renders "no money" if the player has no money
-				if(cur_player->p_data.money < cur_player->p_data.bet) {
-					bustRect.x = i*(separatorPos/4-5)+60;
-					bustRect.w = 100;
-					bustRect.h = 20;
-					SDL_RenderFillRect(_renderer, &bustRect);
-					sprintf(no_play, "NO MONEY");
-					render_text(bustRect.x + 7, bustRect.y - 3, no_play, _font, &green, _renderer);
 				}
 			i += 1;
 		}
