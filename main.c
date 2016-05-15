@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
 
 	init_deck(&deck, deck_num);
 	
-	printf("Keys:\n(H)it - (S)tand - (Q)uit - (N)ew Game - (B)et - (D)ouble - (A)dd Player - Surrende(r)\n");
+	printf("Keys:\n(H)it - (S)tand - (B)et - (D)ouble - Surrende(r)\n(Q)uit - (N)ew Game - (A)dd Player\n");
 	
 	// load AI decision info
 	load_ai_tables(&ai_tables);
