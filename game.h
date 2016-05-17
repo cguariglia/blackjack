@@ -19,6 +19,7 @@
 typedef struct {
 	char **hard_table;
 	char **soft_table;
+	int delay;
 	int count; // for card counting
 } ai_info;
 
@@ -27,11 +28,11 @@ void make_ordered_deck(c_node **, int);
 card remove_card(c_node **, int);
 void make_deck(stack *, int);
 void init_deck(stack **, int);
-void deal_card(player *, stack *, int);
-void first_hand(playerlist *, stack *, int);
+void deal_card(player *, stack *, int, ai_info *);
+void first_hand(playerlist *, stack *, ai_info *, int);
 int point_calculator(player);
 void end_game(playerlist *);
-void house_plays(player *, stack *, int);
+void house_plays(player *, stack *, ai_info *, int);
 int has_blackjack(player);
 void write_stats(playerlist);
 void change_bet(playerlist *);

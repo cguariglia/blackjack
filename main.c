@@ -22,7 +22,6 @@ int main(int argc, char **argv) {
     SDL_Surface *cards[MAX_DECK_SIZE+1], *imgs[2];
     SDL_Event event;
     int delay = 33;
-	int ai_delay = 1000;
     int quit = 0;
     int x, y;
     playerlist *players;
@@ -50,13 +49,15 @@ int main(int argc, char **argv) {
 	
 	// load AI decision info
 	load_ai_tables(&ai_tables);
+	ai_tables.delay = 1000;
+	ai_tables.count = 0;
 	
 	// initialize graphics
 	init_everything(WIDTH_WINDOW, HEIGHT_WINDOW, &serif, imgs, &window, &renderer);
     // loads the cards images
     load_cards(cards);
     
-    first_hand(players, deck, deck_num); // deal first round of cards
+    first_hand(players, deck, &ai_tables, deck_num); // deal first round of cards
     
 	// set first player
 	current = players->head; 
@@ -71,7 +72,8 @@ int main(int argc, char **argv) {
 				// The window gets closed
 				quit = 1;
             }
-			else if(event.type == SDL_KEYDOWN) {	
+			else if(event.type == SDL_KEYDOWN) {
+				printf("%d\n", ai_tables.count);	
 				switch (event.key.keysym.sym) { 
 				    // You can quit with the 'q' key too
                     case SDLK_q:
@@ -94,14 +96,14 @@ int main(int argc, char **argv) {
 					case SDLK_h:
 						// hit
 						if(current != players->tail && current->p_data.type == HU_TYPE)
-						    deal_card(&(current->p_data), deck, deck_num);    
+						    deal_card(&(current->p_data), deck, deck_num, &ai_tables);    
                         break;
                         
                     // You can't start a new game unless the current game is over.
                     case SDLK_n:
                     // The game is only over if the house has finished playing
 						if(current == players->tail) {
-							first_hand(players, deck, deck_num);
+							first_hand(players, deck, &ai_tables, deck_num);
 							next_player(&current);
 						}
                         break;
@@ -119,7 +121,7 @@ int main(int argc, char **argv) {
 						if(current != players->tail && current->p_data.type == HU_TYPE) {
 							current->p_data.bet *= 2;
 							current->p_data.status = DOUBLE_STATUS;
-							deal_card(&(current->p_data), deck, deck_num);
+							deal_card(&(current->p_data), deck, deck_num, &ai_tables);
 							next_player(&current);
 						}
 						break;
@@ -135,6 +137,13 @@ int main(int argc, char **argv) {
 							seat = -1;
 							a_pressed = 1;
 						}
+						break;
+					case SDLK_UP:
+						ai_tables.delay += 1000;
+						break;
+					case SDLK_DOWN:
+						if(ai_tables.delay > 1000)
+							ai_tables.delay -= 1000;
 						break;
 					default:
 						break;
@@ -156,7 +165,7 @@ int main(int argc, char **argv) {
         
         // time for da houzz
         if(current == players->tail && players->tail->p_data.status == 1) {
-			house_plays(&(players->tail->p_data), deck, deck_num);
+			house_plays(&(players->tail->p_data), deck, &ai_tables, deck_num);
 			end_game(players);
 		}
 		
@@ -182,7 +191,7 @@ int main(int argc, char **argv) {
 		
 		// them AI's are getting smart
 		if(current->p_data.type == AI_TYPE) {
-			SDL_Delay(ai_delay);
+			SDL_Delay(ai_tables.delay);
 			play_ai(&current, players->tail->p_data, deck, deck_num, ai_tables);
 		}
     }

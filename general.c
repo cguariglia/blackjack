@@ -174,7 +174,6 @@ void read_settings(char *filename, playerlist *players, int *deck_num) {
 		temp.seat = i + 1;
 		
 		insert_node(players, temp, players->size);
-		printf("inserted: %s\n", temp.name);
 	}
 	
 	fclose(f);

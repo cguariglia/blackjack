@@ -82,22 +82,30 @@ void init_deck(stack **deck, int deck_num) {
 	make_deck(*deck, deck_num);
 }
 
-void deal_card(player *dest, stack *source, int deck_num) {
+void deal_card(player *dest, stack *source, int deck_num, ai_info *ai) {
 	c_node *temp;
 
-	 // Check if deck is empty
-	 if(is_empty(*source))
+	// Check if deck is empty
+	if(is_empty(*source))
 		init_deck(&source, deck_num);
+		
+	// Update card counting for AI's
+	if(source->top->c_data.id >= 9)
+		ai->count -= 1;
+	else if(source->top->c_data.id <= 5)
+		ai->count += 1;
+	printf("%d deal it\n", ai->count);
 
 	temp = pop(source);
 	push(&(dest->hand), temp->c_data);
 
 	// Calculates points after new card has been dealt
 	dest->points = point_calculator(*dest);
+	
 }
 
 // Deal two cards to every player and the house
-void first_hand(playerlist *players, stack *deck, int deck_num) {
+void first_hand(playerlist *players, stack *deck, ai_info *info, int deck_num) {
 	int i;
 	p_node *cur;
 
@@ -109,8 +117,17 @@ void first_hand(playerlist *players, stack *deck, int deck_num) {
 
 		if(cur->p_data.active == 1) {
 			cur->p_data.status = 0;
-			for(i = 0; i < 2; i++)
-				deal_card(&(cur->p_data), deck, deck_num);
+			
+			for(i = 0; i < 2; i++) {
+				if(i == 0 && cur == players->tail) {
+					if(deck->top->c_data.id >= 9)
+						info->count += 1;
+					else if(deck->top->c_data.id <= 5)
+						info->count -= 1;
+				}	
+				deal_card(&(cur->p_data), deck, deck_num, info);
+				
+			}
 
 			// If the house has recieved cards then stop dealing
 			if(cur->next == players->head)
@@ -206,12 +223,12 @@ void end_game(playerlist *players) {
 	}
 }
 
-void house_plays(player *house, stack *deck, int deck_num) {
+void house_plays(player *house, stack *deck, ai_info *ai_tables, int deck_num) {
 	c_node *cur;
 	int aces = 0;
 
 	while(house->points < 17)
-		deal_card(house, deck, deck_num);
+		deal_card(house, deck, deck_num, ai_tables);
 
 	if(house->points == 17) {
 		for(cur = house->hand.top; cur != NULL; cur = cur->next)
@@ -219,7 +236,7 @@ void house_plays(player *house, stack *deck, int deck_num) {
 				aces += 1;
 
 		if(aces == 1)
-			deal_card(house, deck, deck_num);
+			deal_card(house, deck, deck_num, ai_tables);
 	}
 
 	house->status = 0;
@@ -393,9 +410,25 @@ void play_ai(p_node **current, player house, stack *deck, int decks, ai_info inf
 			decision = info.soft_table[line][col];
 	}
 	
+	// correct decision if it isn't possible to double
+	if(decision == 'D' && ai->hand.size > 2) {
+		if(aces == 0) // hard hand
+			decision = 'H';
+		else { // soft hand
+			if(ai->points == 18)
+				decision = 'S';
+			else
+				decision = 'H';
+		}
+	}
+	
+	// correct decision if surrendering is impossible
+	if(decision == 'S' && ai->hand.size > 2)
+		decision = 'H';
+	
 	// make move
 	if(decision == 'H') { // hit
-		deal_card(ai, deck, decks);
+		deal_card(ai, deck, decks, &info);
 	}
 	else if(decision == 'S') { // stand
 		next_player(current);
@@ -403,7 +436,7 @@ void play_ai(p_node **current, player house, stack *deck, int decks, ai_info inf
 	else if(decision == 'D') { // double
 		ai->bet *= 2;
 		ai->status = DOUBLE_STATUS;
-		deal_card(ai, deck, decks);
+		deal_card(ai, deck, decks, &info);
 		next_player(current);
 	}
 	else if(decision == 'R') { // surrender

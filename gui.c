@@ -42,7 +42,7 @@ void render_table(playerlist _players, TTF_Font *_font, SDL_Surface *_img[], SDL
     SDL_RenderCopy(_renderer, table_texture, &tableSrc, &tableDest);
     
     // Render the IST Logo
-    height = render_logo(separatorPos, 0, _img[1], _renderer);
+    height = render_logo(separatorPos + 25, 0, _img[1], _renderer);
 
     // Renders the areas for each player: names and money too !
     last = NULL;
