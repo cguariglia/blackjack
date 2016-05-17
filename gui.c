@@ -8,6 +8,7 @@
 
 #include "gui.h"
 
+
 // Renders the playing table(player squares, names, etc) and sidebar
 void render_table(playerlist _players, TTF_Font *_font, SDL_Surface *_img[], SDL_Renderer *_renderer) {
     SDL_Color white = {255, 255, 255}; // White
@@ -19,7 +20,7 @@ void render_table(playerlist _players, TTF_Font *_font, SDL_Surface *_img[], SDL
     SDL_Texture *table_texture;
     SDL_Rect tableSrc, tableDest, playerRect;
     int separatorPos =(int)(0.95f*WIDTH_WINDOW); // Seperates the left from the right part of the window
-    p_node *cur = _players.head;
+    p_node *last, *cur = _players.head;
     int i = 0;
     int height = 0;
 
@@ -44,22 +45,25 @@ void render_table(playerlist _players, TTF_Font *_font, SDL_Surface *_img[], SDL
     height = render_logo(separatorPos, 0, _img[1], _renderer);
 
     // Renders the areas for each player: names and money too !
-    while(cur->p_data.type != HOUSE_TYPE) {
+    last = NULL;
+    while(last != _players.tail) {
 		// Either the player isn't playing or it's already been rendered
 		if(cur->p_data.active == 0 || cur->p_data.seat < i) {
+			last = cur;
 			cur = cur->next;
 			continue;
 		}
 		
+		// Strings used to render the side info in case no player is playing in that spot
 		sprintf(no_player, "No Player | --");
-		// Render side information: Money
 		sprintf(no_money, "Money: -- | Bet: --");
 		
 		// Render side information: name | type
 		sprintf(name_str, "%s | %s", cur->p_data.name, (cur->p_data.type == AI_TYPE ? "AI":"HU"));
-		// Render side information: Money
+		// Render side information: money | bet
 		sprintf(money_str, "Money: %d | Bet: %d", cur->p_data.money, cur->p_data.bet);
 		
+		// Position and strings used for the rectangles
 		playerRect.x = i*(separatorPos/4-5)+10;
         playerRect.y =(int)(0.55f*HEIGHT_WINDOW);
         playerRect.w = separatorPos/4-5;
@@ -73,15 +77,19 @@ void render_table(playerlist _players, TTF_Font *_font, SDL_Surface *_img[], SDL
             render_text(playerRect.x + 20, playerRect.y - 30, add, _font, &grey, _renderer);
 			SDL_RenderDrawRect(_renderer, &playerRect);
 			i += 1;
-			height += render_text(separatorPos+3*MARGIN, height, no_player, _font, &black, _renderer);
-			height += render_text(separatorPos+3*MARGIN, height, no_money, _font, &black, _renderer);
+			// Render side info
+			height += render_text(separatorPos+3*MARGIN, height, no_player, _font, &grey, _renderer);
+			height += render_text(separatorPos+3*MARGIN, height, no_money, _font, &grey, _renderer);
 			height += 15;
 			continue;
 		}
+		if(cur == _players.tail)
+			break;
         // Renders the active player in red
         else if(cur->p_data.status == 1) {
             SDL_SetRenderDrawColor(_renderer, 255, 0, 0, 255);
             render_text(playerRect.x + 20, playerRect.y - 30, name_money_str, _font, &red, _renderer);
+            
             height += render_text(separatorPos+3*MARGIN, height, name_str, _font, &red, _renderer);
 			height += render_text(separatorPos+3*MARGIN, height, money_str, _font, &red, _renderer);
 			height += 15;
@@ -90,23 +98,18 @@ void render_table(playerlist _players, TTF_Font *_font, SDL_Surface *_img[], SDL
         else {
             SDL_SetRenderDrawColor(_renderer, 255, 255, 255, 255);
             render_text(playerRect.x + 20, playerRect.y - 30, name_money_str, _font, &white, _renderer);
+            
             height += render_text(separatorPos+3*MARGIN, height, name_str, _font, &black, _renderer);
 			height += render_text(separatorPos+3*MARGIN, height, money_str, _font, &black, _renderer);
 			height += 15;
         }
         SDL_RenderDrawRect(_renderer, &playerRect);
         
+        last = cur;
         cur = cur->next;
         i += 1;
     }
 
-	
-    // Render the student name
-    height += render_text(separatorPos+3*MARGIN, height, "THIS IS BETATA VERSION", _font, &red, _renderer);
-
-    // Render the student number
-    render_text(separatorPos+3*MARGIN, height, "GIB MONEY PLZ", _font, &red, _renderer);
-	
     // Destroy everything
     SDL_DestroyTexture(table_texture);
 }
@@ -168,6 +171,7 @@ void render_player_cards(playerlist players, SDL_Surface **_cards, SDL_Renderer*
             if(pos == 1 || pos == 3) x += CARD_WIDTH + 30;
             if(pos == 2 || pos == 3) y += CARD_HEIGHT + 10;
             
+            // Determines 
             card_code = (cur_card->c_data.id - 1) + (13 * cur_card->c_data.suit); 
             
             // Render it

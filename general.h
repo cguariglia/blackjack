@@ -4,9 +4,11 @@
 #include <stdlib.h>
 
 #define BUFFER 256
-#define MAX_NAME 8
-#define HOUSE_TYPE 2
+#define MAX_NAME 9
+#define HU_TYPE 0
 #define AI_TYPE 1
+#define HOUSE_TYPE 2
+
 	
 typedef struct {
 	int id;
@@ -37,7 +39,7 @@ typedef struct {
 	int active; // 0 - player has left the table, 1 - player is playing
 	int points;
 	int status; // 0 - inactive, 1 - active, 2 - double, 3 - surrender
-	int seat; // From 1 to 4, left to right. 5 is the house.
+	int seat; // From 1 to 4, left to right
 } player;
 
 // Defines node used to create player list

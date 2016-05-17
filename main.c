@@ -24,11 +24,14 @@ int main(int argc, char **argv) {
     int delay = 33;
 	int ai_delay = 1000;
     int quit = 0;
+    int x, y;
     playerlist *players;
 	ai_info ai_tables; // tables for AI's and count for card counting
     p_node *current;
     stack *deck;
     int deck_num; //Number of decks chosen by the player
+    int seat;
+    int a_pressed = 0;
     
     srand(time(NULL)); // seeds
     
@@ -61,23 +64,18 @@ int main(int argc, char **argv) {
     
  	while (quit == 0) {
 		
-		// them AI's are getting smart
-		if(current->p_data.type == AI_TYPE) {
-			SDL_Delay(ai_delay);
-			play_ai(&current, players->tail->p_data, deck, deck_num, ai_tables);
-		}
         // while there's events to handle
-        while (SDL_PollEvent(&event)) {
+        while(SDL_PollEvent(&event)) {
+			SDL_GetMouseState(&x, &y);
 			if (event.type == SDL_QUIT) {
 				// The window gets closed
 				quit = 1;
             }
-			else if (event.type == SDL_KEYDOWN) {	
+			else if(event.type == SDL_KEYDOWN) {	
 				switch (event.key.keysym.sym) { 
-					
 				    // You can quit with the 'q' key too
                     case SDLK_q:
-                        // quit and write stats file
+                        // Quit and write stats file
                         if(current == players->tail) {
 							quit = 1;
 							write_stats(*players);
@@ -86,10 +84,8 @@ int main(int argc, char **argv) {
                         
                     // Pass to the next player
 					case SDLK_s:
-						// stand
-						
-						// only go to next player if its not the house playing
-						if(current != players->tail)
+						// Stand -- only go to next player if it's not the house playing
+						if(current != players->tail && current->p_data.type == HU_TYPE)
 							next_player(&current);
                         
                         break;
@@ -97,26 +93,22 @@ int main(int argc, char **argv) {
                     // The player asks for another card
 					case SDLK_h:
 						// hit
-						if(current != players->tail)
-						    deal_card(&(current->p_data), deck, deck_num);
-						    
+						if(current != players->tail && current->p_data.type == HU_TYPE)
+						    deal_card(&(current->p_data), deck, deck_num);    
                         break;
                         
                     // You can't start a new game unless the current game is over.
                     case SDLK_n:
-						//new game
-						
-						// only start new game if house is finished playing
+                    // The game is only over if the house has finished playing
 						if(current == players->tail) {
 							first_hand(players, deck, deck_num);
 							next_player(&current);
 						}
-							
                         break;
                         
                     case SDLK_r:
 						// surrender
-						if(current != players->tail) {
+						if(current != players->tail && current->p_data.type == HU_TYPE) {
 							current->p_data.status = SURRENDER_STATUS;
 							next_player(&current);
 						}
@@ -124,7 +116,7 @@ int main(int argc, char **argv) {
 						
 					case SDLK_d:
 						// double
-						if(current != players->tail) {
+						if(current != players->tail && current->p_data.type == HU_TYPE) {
 							current->p_data.bet *= 2;
 							current->p_data.status = DOUBLE_STATUS;
 							deal_card(&(current->p_data), deck, deck_num);
@@ -137,11 +129,22 @@ int main(int argc, char **argv) {
 						if(current == players->tail)
 							change_bet(players);
 						break;
-						
+					case SDLK_a:
+						if(current == players->tail) {
+							printf("Press on an empty seat to add a player.\n");
+							seat = -1;
+							a_pressed = 1;
+						}
+						break;
 					default:
 						break;
 				} // close event switch
-			} 
+			}
+			else if(event.type == SDL_MOUSEBUTTONUP) {
+				if(event.button.button == SDL_BUTTON_LEFT) {
+					seat = get_seat(x, y);
+				}
+			}
         } // close event loop
 
         // check if player bust
@@ -156,6 +159,13 @@ int main(int argc, char **argv) {
 			house_plays(&(players->tail->p_data), deck, deck_num);
 			end_game(players);
 		}
+		
+		if(a_pressed == 1) {
+			if(verify_seat(*players, seat) == 1) {
+				add_player(players, seat);
+					a_pressed = 0;
+			}
+		}
         
         // render game table
         render_table(*players, serif, imgs, renderer);
@@ -169,6 +179,12 @@ int main(int argc, char **argv) {
         SDL_RenderPresent(renderer);
     	// add a delay
 		SDL_Delay(delay);
+		
+		// them AI's are getting smart
+		if(current->p_data.type == AI_TYPE) {
+			SDL_Delay(ai_delay);
+			play_ai(&current, players->tail->p_data, deck, deck_num, ai_tables);
+		}
     }
 
 

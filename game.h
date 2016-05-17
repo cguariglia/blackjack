@@ -13,6 +13,9 @@
 #define DOUBLE_STATUS 2
 #define SURRENDER_STATUS 3
 
+#define WIDTH_WINDOW 900      // window width
+#define HEIGHT_WINDOW 525     // window height
+
 typedef struct {
 	char **hard_table;
 	char **soft_table;
@@ -35,5 +38,8 @@ void change_bet(playerlist *);
 void load_ai_tables(ai_info *);
 void print_table(char **, int, int);
 void play_ai(p_node **, player, stack *, int, ai_info);
+int get_seat(int, int);
+int verify_seat(playerlist, int);
+void add_player(playerlist *, int);
 
 #endif

@@ -255,7 +255,7 @@ void write_stats(playerlist players) {
 void change_bet(playerlist *players) {
 	p_node *cur;
 	char name[BUFFER], n_bet[BUFFER];
-	int new_bet, args = 1;
+	int new_bet = 0, args = 1;
 
 	printf("Whose bet do you want to change?\n");
 	fgets(name, BUFFER, stdin);
@@ -270,12 +270,12 @@ void change_bet(playerlist *players) {
 			}
 			else {
 				do {
-					if(args != 1)
+					if(args != 1 || cur->p_data.money < new_bet)
 						printf("That wasn't a valid number! Please try again.\n");
 					printf("New bet: ");
 					fgets(n_bet, BUFFER, stdin);
 					args = sscanf(n_bet, "%d", &new_bet);
-				} while(args != 1);
+				} while(args != 1 || cur->p_data.money < new_bet);
 
 				cur->p_data.bet = new_bet;
 				printf("%s's bet changed successfully to %d euros.\n", name, new_bet);
@@ -285,7 +285,7 @@ void change_bet(playerlist *players) {
 		}
 	}
 
-	printf("That player is not playing this game! Please try again.");
+	printf("That player is not playing this game! Press B to try again.\n");
 }
 
 // load the AI decision tables from a file
@@ -386,8 +386,11 @@ void play_ai(p_node **current, player house, stack *deck, int decks, ai_info inf
 			line = 6;
 		else
 			line = ai->points - 13;
-
-		decision = info.soft_table[line][col];
+		
+		if(aces == 2)
+			decision = 'H';
+		else
+			decision = info.soft_table[line][col];
 	}
 	
 	// make move
@@ -407,4 +410,120 @@ void play_ai(p_node **current, player house, stack *deck, int decks, ai_info inf
 		ai->status = SURRENDER_STATUS;
 		next_player(current);
 	}
+}
+
+int get_seat(int x, int y) {
+	
+    int separatorPos =(int)(0.95f*WIDTH_WINDOW);
+	int starting_y = (int)(0.55f*HEIGHT_WINDOW);
+	int starting_x = 10;
+	int rect_height = (int)(0.42f*HEIGHT_WINDOW);
+	int rect_width = separatorPos/4-5;
+	int seat;
+	
+	if(y >= starting_y && y <= starting_y + rect_height) {
+		if(x >= starting_x && x <= ((rect_width * 4) + starting_x)) {
+			seat = ((x - 10) / rect_width) + 1;
+		}
+		else 
+			seat = -1;
+	}
+	else
+		seat = -1;
+
+	return seat;
+}
+
+int verify_seat(playerlist players, int seat) {
+	p_node *cur;
+	
+	if(seat <= 0)
+		return 0;
+		
+	for(cur = players.head; cur != players.tail; cur = cur->next) {
+		if(cur->p_data.seat == seat && cur->p_data.active == 1)
+			return 0;
+	}
+	
+	return 1;	
+}
+
+void add_player(playerlist *players, int seat) {
+	char line[BUFFER];
+	player temp;
+	p_node *cur;
+	int args = 1, index;
+	
+	// initialize player variables
+	temp.wins = 0; temp.losses = 0; temp.ties = 0;
+	temp.points = 0; temp.active = 1; temp.status = 0;
+	temp.type = 0; temp.seat = 0;
+	
+	// initialize player hand
+	temp.hand = *((stack *)allocate(sizeof(stack)));
+	temp.hand.top = NULL;
+	temp.hand.size = 0;
+	
+	temp.money = 10;
+	temp.bet = 2;
+	temp.type = 1;
+	
+	do {
+	printf("What is the new player's name? ");
+	fgets(line, BUFFER, stdin);
+	args = sscanf(line, "%s", temp.name); 
+	} while(args != 1);
+	
+	// search if player name is taken
+	for(cur = players->head; cur != players->tail; cur = cur->next) {
+		if(strcmp(cur->p_data.name, temp.name) == 0) {
+			printf("That name is taken. Please choose another name.\n");
+			add_player(players, seat);
+			return;
+		}
+	}
+	
+	do {
+		if(temp.money < 10 || temp.money > 500 || args != 1)
+			printf("Starting money must a whole number between 10 and 500!\n");
+		printf("What is %s's starting money? ", temp.name);
+		fgets(line, BUFFER, stdin);
+		args = sscanf(line, "%d", &temp.money);
+	} while(temp.money < 10 || temp.money > 500 || args != 1);
+	
+	// Check for errors regarding the bet
+	do {
+		if(temp.bet < 2 || temp.bet > (temp.money / 4) || args != 1)
+			printf("Betting money invalid. Must be a whole number between 2 and 25%% of the starting money.\n");
+		printf("What is %s's starting bet? ", temp.name);
+		fgets(line, BUFFER, stdin);
+		args = sscanf(line, "%d", &temp.bet);
+	} while(temp.bet < 2 || temp.bet > (temp.money / 4) || args != 1);
+		
+	// Check for errors on the type of the player
+	do {
+		if(temp.type != 0 && temp.type != 1)
+			printf("That's not a valid player type!\n");
+		printf("What is the player's type? (HU or EA) ");
+		fgets(line, BUFFER, stdin);
+		line[strlen(line) - 1] = '\0';
+		if(strcmp("HU", line) == 0)
+			temp.type = 0;
+		else if(strcmp("EA", line) == 0)
+			temp.type = 1;
+		else
+			temp.type = 3;
+	} while(temp.type != 0 && temp.type != 1);
+	
+	temp.seat = seat;
+	
+	// find correct index to insert
+	index = 0;
+	cur = players->head;
+	while(cur->p_data.seat < seat) {
+		index += 1;
+		cur = cur->next;
+	}
+	
+	insert_node(players, temp, index);
 }

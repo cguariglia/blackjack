@@ -147,6 +147,8 @@ void read_settings(char *filename, playerlist *players, int *deck_num) {
 			exit(EXIT_FAILURE);
 		}
 		
+		temp.name[strlen(temp.name)] = '\0';
+		
 		// Check for errors regarding the start money
 		if(temp.money < 10 || temp.money > 500) {
 			printf("Starting money must a whole number between 10 and 500! Check line %d.", i + 2);
@@ -172,6 +174,7 @@ void read_settings(char *filename, playerlist *players, int *deck_num) {
 		temp.seat = i + 1;
 		
 		insert_node(players, temp, players->size);
+		printf("inserted: %s\n", temp.name);
 	}
 	
 	fclose(f);
@@ -180,8 +183,7 @@ void read_settings(char *filename, playerlist *players, int *deck_num) {
 	temp.type = 2;
 	temp.status = 0;
 	temp.seat = 5;
-	sprintf(temp.name, "_house_");
-
+	
 	insert_node(players, temp, players->size);
 }
 
