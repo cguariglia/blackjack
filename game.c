@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 #include "general.h"
 #include "game.h"
@@ -94,7 +95,6 @@ void deal_card(player *dest, stack *source, int deck_num, ai_info *ai) {
 		ai->count -= 1;
 	else if(source->top->c_data.id <= 5)
 		ai->count += 1;
-	printf("%d deal it\n", ai->count);
 
 	temp = pop(source);
 	push(&(dest->hand), temp->c_data);
@@ -442,6 +442,24 @@ void play_ai(p_node **current, player house, stack *deck, int decks, ai_info inf
 	else if(decision == 'R') { // surrender
 		ai->status = SURRENDER_STATUS;
 		next_player(current);
+	}
+}
+
+void update_ai_bet(playerlist *players, ai_info info, stack deck) {
+	p_node *cur;
+	int mult = 1; // multiplier for bet changing
+	
+	printf("count is at: %d\n", info.count);
+	mult = info.count / ((deck.size / 52) + 1);
+	
+	for(cur = players->head; cur->p_data.type != HOUSE_TYPE; cur = cur->next) {
+		if(cur->p_data.type != AI_TYPE)
+			continue;
+		
+		if(info.count > 0) 
+			cur->p_data.bet *= (int)pow(2, mult); // change bet
+			
+		printf("%s bet's is now %d\n", cur->p_data.name, cur->p_data.bet);
 	}
 }
 

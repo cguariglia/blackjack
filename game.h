@@ -39,6 +39,7 @@ void change_bet(playerlist *);
 void load_ai_tables(ai_info *);
 void print_table(char **, int, int);
 void play_ai(p_node **, player, stack *, int, ai_info);
+void update_ai_bet(playerlist *, ai_info, stack);
 int get_seat(int, int);
 int verify_seat(playerlist, int);
 void add_player(playerlist *, int);

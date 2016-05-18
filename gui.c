@@ -125,7 +125,7 @@ void render_house_cards(player _house, SDL_Surface **_cards, SDL_Renderer*_rende
     for(cards = 0; cards < hand_size; cards++) {
 		cur = _house.hand.top;
 		
-		// 'walk' to card to render
+		// We have to render the last card in the stack first, then the one before that and so forth
 		for(i = 0; i < hand_size - cards - 1; i++)
 			cur = cur->next;
 		
@@ -312,7 +312,7 @@ void init_SDL()
 	{
     // init SDL library
 	if(SDL_Init(SDL_INIT_EVERYTHING) == -1) {
-		printf(" Failed to initialize SDL : %s\n", SDL_GetError());
+		printf("Failed to initialize SDL : %s\n", SDL_GetError());
         exit(EXIT_FAILURE);
 	}
 }
@@ -374,12 +374,10 @@ SDL_Renderer * create_renderer(int width, int height, SDL_Window *_window)
 }
 
 /**
- *Renders the word bust when the player has busted, 'no money' when the player has run out of money and 'game over' when that happens to all players.
- *\param money a player's current money
- *\param bet corresponding to each player 
+ *Renders the word bust when the player has busted, 'blackjack' when the player has a blackjack
 **/
 void render_overlay(TTF_Font *_font, SDL_Renderer *_renderer, playerlist players) {
-    SDL_Rect bustRect;
+    SDL_Rect overRect;
     SDL_Color red =  {255, 0, 0}; 
     SDL_Color yellow = {255, 255, 51};
     int separatorPos =(int)(0.95f*WIDTH_WINDOW);
@@ -395,23 +393,23 @@ void render_overlay(TTF_Font *_font, SDL_Renderer *_renderer, playerlist players
 			while(cur_player->p_data.seat > (i + 1))
 				i += 1;
 			
-			bustRect.y =(int)(0.55f*HEIGHT_WINDOW) + 100;
+			overRect.y =(int)(0.55f*HEIGHT_WINDOW) + 100;
 			// Renders "bust" if the player has busted
 				if(has_blackjack(cur_player->p_data) == 1) {
-					bustRect.x = i*(separatorPos/4-5)+60;
-					bustRect.w = 110;
-					bustRect.h = 20;
-					SDL_RenderFillRect(_renderer, &bustRect);
+					overRect.x = i*(separatorPos/4-5)+60;
+					overRect.w = 110;
+					overRect.h = 20;
+					SDL_RenderFillRect(_renderer, &overRect);
 					sprintf(blackjack, "BLACKJACK");
-					render_text(bustRect.x + 7, bustRect.y - 3, blackjack, _font, &yellow, _renderer);
+					render_text(overRect.x + 7, overRect.y - 3, blackjack, _font, &yellow, _renderer);
 				}
 				if(cur_player->p_data.points > 21) {
-					bustRect.x = i*(separatorPos/4-5)+80;
-					bustRect.w = 50;
-					bustRect.h = 20;
-					SDL_RenderFillRect(_renderer, &bustRect);
+					overRect.x = i*(separatorPos/4-5)+80;
+					overRect.w = 50;
+					overRect.h = 20;
+					SDL_RenderFillRect(_renderer, &overRect);
 					sprintf(busted, "BUST");
-					render_text(bustRect.x + 4, bustRect.y - 3, busted, _font, &red, _renderer);
+					render_text(overRect.x + 4, overRect.y - 3, busted, _font, &red, _renderer);
 				}
 			i += 1;
 		}

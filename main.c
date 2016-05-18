@@ -110,7 +110,7 @@ int main(int argc, char **argv) {
                         
                     case SDLK_r:
 						// surrender
-						if(current != players->tail && current->p_data.type == HU_TYPE) {
+						if(current != players->tail && current->p_data.type == HU_TYPE && current->p_data.hand.size == 2) {
 							current->p_data.status = SURRENDER_STATUS;
 							next_player(&current);
 						}
@@ -118,7 +118,7 @@ int main(int argc, char **argv) {
 						
 					case SDLK_d:
 						// double
-						if(current != players->tail && current->p_data.type == HU_TYPE) {
+						if(current != players->tail && current->p_data.type == HU_TYPE && current->p_data.hand.size == 2) {
 							current->p_data.bet *= 2;
 							current->p_data.status = DOUBLE_STATUS;
 							deal_card(&(current->p_data), deck, deck_num, &ai_tables);
@@ -165,8 +165,10 @@ int main(int argc, char **argv) {
         
         // time for da houzz
         if(current == players->tail && players->tail->p_data.status == 1) {
+			// <-- stuuuuuuuuuuuuuuuuufffff aiiii update house card upside down
 			house_plays(&(players->tail->p_data), deck, &ai_tables, deck_num);
 			end_game(players);
+			update_ai_bet(players, ai_tables, *deck);
 		}
 		
 		if(a_pressed == 1) {
