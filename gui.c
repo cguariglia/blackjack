@@ -43,9 +43,10 @@ void render_table(playerlist _players, TTF_Font *_font, SDL_Surface *_img[], SDL
     
     // Render the IST Logo
     height = render_logo(separatorPos + 25, 0, _img[1], _renderer);
-
-    // Renders the areas for each player: names and money too !
+    
     last = NULL;
+    
+    // Renders everything, for every player. Last is used instead of cur because this loop needs to run one more time than that
     while(last != _players.tail) {
 		// Either the player isn't playing or it's already been rendered
 		if(cur->p_data.active == 0 || cur->p_data.seat < i) {
@@ -58,9 +59,8 @@ void render_table(playerlist _players, TTF_Font *_font, SDL_Surface *_img[], SDL
 		sprintf(no_player, "No Player | --");
 		sprintf(no_money, "Money: -- | Bet: --");
 		
-		// Render side information: name | type
+		// Render side information: name | type and money | bet
 		sprintf(name_str, "%s | %s", cur->p_data.name, (cur->p_data.type == AI_TYPE ? "AI":"HU"));
-		// Render side information: money | bet
 		sprintf(money_str, "Money: %d | Bet: %d", cur->p_data.money, cur->p_data.bet);
 		
 		// Position and strings used for the rectangles
@@ -68,7 +68,7 @@ void render_table(playerlist _players, TTF_Font *_font, SDL_Surface *_img[], SDL
         playerRect.y =(int)(0.55f*HEIGHT_WINDOW);
         playerRect.w = separatorPos/4-5;
         playerRect.h =(int)(0.42f*HEIGHT_WINDOW);
-        sprintf(name_money_str, "%s -- %d euros", cur->p_data.name, cur->p_data.money);
+        sprintf(name_money_str, "%s -- %d euros -- %d pts", cur->p_data.name, cur->p_data.money, cur->p_data.points);
         sprintf(add, "No Player");
         
         // A seat hasn't been rendered, because there is no player in that seat
@@ -129,7 +129,7 @@ void render_house_cards(player _house, SDL_Surface **_cards, SDL_Renderer*_rende
 		for(i = 0; i < hand_size - cards - 1; i++)
 			cur = cur->next;
 		
-        // calculate its position
+        // Calculate its position
         x =(div/2-_house.hand.size/2+cards)*CARD_WIDTH + 15;
         y =(int)(0.26f*HEIGHT_WINDOW);
         
@@ -143,7 +143,8 @@ void render_house_cards(player _house, SDL_Surface **_cards, SDL_Renderer*_rende
 }
 
 void render_player_cards(playerlist players, SDL_Surface **_cards, SDL_Renderer*_renderer) {
-    int pos, x, y, cards, num_player = 0;
+    int pos, x, y, cards;
+    int num_player = 0; // Rendering player positions, 0 to 3
     p_node *cur_player;
     c_node *cur_card;
     int i, card_code, hand_size;
@@ -153,6 +154,7 @@ void render_player_cards(playerlist players, SDL_Surface **_cards, SDL_Renderer*
 		if(cur_player->p_data.active == 0 || cur_player->p_data.seat < num_player)
 			continue;
 		
+		// Render in the correct player seating position
 		while(cur_player->p_data.seat > (num_player + 1))
 			num_player += 1;
 			
@@ -225,34 +227,32 @@ void load_cards(SDL_Surface **_cards) {
 }
 
 void unload_cards(SDL_Surface **_array_of_cards) {
-    // unload all cards of the memory: +1 for the card back
+    // Unload all cards of the memory: +1 for the card back
     for(int i = 0 ; i < MAX_DECK_SIZE + 1; i++) {
         SDL_FreeSurface(_array_of_cards[i]);
     }
 }
 
-int render_logo(int x, int y, SDL_Surface *_logoIST, SDL_Renderer*_renderer)
-{
+int render_logo(int x, int y, SDL_Surface *_logoIST, SDL_Renderer*_renderer) {
 	SDL_Texture *text_IST;
 	SDL_Rect boardPos;
 
-    // space occupied by the logo
+    // Space occupied by the logo
 	boardPos.x = x;
 	boardPos.y = y;
 	boardPos.w = _logoIST->w;
 	boardPos.h = _logoIST->h;
 
-    // render it
+    // Renders it
 	text_IST = SDL_CreateTextureFromSurface(_renderer, _logoIST);
 	SDL_RenderCopy(_renderer, text_IST, NULL, &boardPos);
 
-    // destroy associated texture !
+    // Destroys associated texture
 	SDL_DestroyTexture(text_IST);
 	return _logoIST->h;
 }
 
-int render_text(int x, int y, const char *text, TTF_Font *_font, SDL_Color *_color, SDL_Renderer*_renderer)
-{
+int render_text(int x, int y, const char *text, TTF_Font *_font, SDL_Color *_color, SDL_Renderer*_renderer){
 	SDL_Surface *text_surface;
 	SDL_Texture *text_texture;
 	SDL_Rect solidRect;
@@ -261,8 +261,7 @@ int render_text(int x, int y, const char *text, TTF_Font *_font, SDL_Color *_col
 	solidRect.y = y;
     // create a surface from the string text with a predefined font
 	text_surface = TTF_RenderText_Blended(_font,text,*_color);
-	if(!text_surface)
-	{
+	if(!text_surface) {
 	    printf("TTF_render_text_Blended: %s\n", TTF_GetError());
 	    exit(EXIT_FAILURE);
 	}
@@ -335,8 +334,7 @@ void init_font()
  *\param height height in px of the window
  *\return pointer to the window created
  */
-SDL_Window * create_window(int width, int height)
-{
+SDL_Window * create_window(int width, int height) {
     SDL_Window *window;
     // init window
 	window = SDL_CreateWindow("BlackJack", WINDOW_POSX, WINDOW_POSY, width+EXTRASPACE, height, 0);
@@ -355,14 +353,12 @@ SDL_Window * create_window(int width, int height)
  *\param _window represents the window for which the renderer is associated
  *\return pointer to the renderer created
  */
-SDL_Renderer * create_renderer(int width, int height, SDL_Window *_window)
-{
+SDL_Renderer * create_renderer(int width, int height, SDL_Window *_window) {
     SDL_Renderer *renderer;
     // init renderer
 	renderer = SDL_CreateRenderer(_window, -1, 0);
 
-	if(renderer == NULL)
-	{
+	if(renderer == NULL) {
 		printf("Failed to create renderer : %s", SDL_GetError());
         exit(EXIT_FAILURE);
 	}
@@ -373,9 +369,8 @@ SDL_Renderer * create_renderer(int width, int height, SDL_Window *_window)
 	return renderer;
 }
 
-/**
- *Renders the word bust when the player has busted, 'blackjack' when the player has a blackjack
-**/
+
+ // Renders the word bust when the player has busted, 'blackjack' when the player has a blackjack
 void render_overlay(TTF_Font *_font, SDL_Renderer *_renderer, playerlist players) {
     SDL_Rect overRect;
     SDL_Color red =  {255, 0, 0}; 

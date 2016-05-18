@@ -306,7 +306,7 @@ void change_bet(playerlist *players) {
 }
 
 // load the AI decision tables from a file
-void load_ai_tables(ai_info *info) {
+void load_ai_tables(ai_info *info, char** filename) {
 	int i, line = 0, col = 0;
 	char c, **hard, **soft;
 	FILE *f;
@@ -319,7 +319,7 @@ void load_ai_tables(ai_info *info) {
 		soft[i] = (char *)allocate(sizeof(char) * 10);
 	}
 
-	f = fopen("ai_config.txt", "r");
+	f = fopen(*filename, "r");
 	if(f == NULL) {
 		printf("There was an error while opening the AI configuration file.\n");
 		exit(EXIT_FAILURE);
@@ -371,14 +371,14 @@ void play_ai(p_node **current, player house, stack *deck, int decks, ai_info inf
 	c_node *cur;
 	player *ai = &((*current)->p_data);
 
-	house_card = house.hand.top->next->c_data; // house's visible card
+	house_card = house.hand.top->next->c_data; // House's visible card
 
-	// count aces
+	// Count aces
 	for(cur = ai->hand.top; cur != NULL; cur = cur->next)
 		if(cur->c_data.id == ACE_ID)
 			aces += 1;
 
-	// position in the table
+	// Position in the table
 	if(house_card.id == ACE_ID)
 		col = 9;
 	else if(house_card.id >= 9 && house_card.id <= 12)
@@ -386,7 +386,7 @@ void play_ai(p_node **current, player house, stack *deck, int decks, ai_info inf
 	else
 		col = house_card.id - 1;
 
-	// hard hand
+	// Hard hand
 	if(aces == 0) { 
 		if(ai->points <= 8)
 			line = 0;
@@ -397,20 +397,20 @@ void play_ai(p_node **current, player house, stack *deck, int decks, ai_info inf
 		
 		decision = info.hard_table[line][col];
 	}
-	// soft hand
+	// Soft hand
 	else {
 		if(ai->points >= 19)
 			line = 6;
 		else
 			line = ai->points - 13;
 		
-		if(aces == 2)
+		if(aces == 2 && ai->hand.size == 2)
 			decision = 'H';
 		else
 			decision = info.soft_table[line][col];
 	}
 	
-	// correct decision if it isn't possible to double
+	// Correct decision if it isn't possible to double
 	if(decision == 'D' && ai->hand.size > 2) {
 		if(aces == 0) // hard hand
 			decision = 'H';
@@ -422,14 +422,13 @@ void play_ai(p_node **current, player house, stack *deck, int decks, ai_info inf
 		}
 	}
 	
-	// correct decision if surrendering is impossible
-	if(decision == 'S' && ai->hand.size > 2)
+	// Correct decision if surrendering is impossible
+	if(decision == 'R' && ai->hand.size > 2)
 		decision = 'H';
-	
-	// make move
-	if(decision == 'H') { // hit
+
+	// Make move
+	if(decision == 'H') // hit
 		deal_card(ai, deck, decks, &info);
-	}
 	else if(decision == 'S') { // stand
 		next_player(current);
 	}
@@ -445,6 +444,7 @@ void play_ai(p_node **current, player house, stack *deck, int decks, ai_info inf
 	}
 }
 
+// Makes the AI's change their bets based on card-counting
 void update_ai_bet(playerlist *players, ai_info info, stack deck) {
 	p_node *cur;
 	int mult = 1; // multiplier for bet changing
@@ -458,13 +458,11 @@ void update_ai_bet(playerlist *players, ai_info info, stack deck) {
 		
 		if(info.count > 0) 
 			cur->p_data.bet *= (int)pow(2, mult); // change bet
-			
-		printf("%s bet's is now %d\n", cur->p_data.name, cur->p_data.bet);
 	}
 }
 
+// Checks if the player has clicked on a valid player seat or not (but doesn't check if a player is there)
 int get_seat(int x, int y) {
-	
     int separatorPos =(int)(0.95f*WIDTH_WINDOW);
 	int starting_y = (int)(0.55f*HEIGHT_WINDOW);
 	int starting_x = 10;
@@ -485,13 +483,16 @@ int get_seat(int x, int y) {
 	return seat;
 }
 
+// Checks if a seat is empty (1) or not (0)
 int verify_seat(playerlist players, int seat) {
 	p_node *cur;
 	
+	// Location clicked wasn't a valid seat
 	if(seat <= 0)
 		return 0;
 		
 	for(cur = players.head; cur != players.tail; cur = cur->next) {
+		// There's a player in the clicked seat
 		if(cur->p_data.seat == seat && cur->p_data.active == 1)
 			return 0;
 	}
@@ -505,16 +506,17 @@ void add_player(playerlist *players, int seat) {
 	p_node *cur;
 	int args = 1, index;
 	
-	// initialize player variables
+	// Initialize player variables
 	temp.wins = 0; temp.losses = 0; temp.ties = 0;
 	temp.points = 0; temp.active = 1; temp.status = 0;
 	temp.type = 0; temp.seat = 0;
 	
-	// initialize player hand
+	// Initialize player hand
 	temp.hand = *((stack *)allocate(sizeof(stack)));
 	temp.hand.top = NULL;
 	temp.hand.size = 0;
 	
+	// Variables initialized so as not to trigger error messages before the second try
 	temp.money = 10;
 	temp.bet = 2;
 	temp.type = 1;
@@ -525,7 +527,7 @@ void add_player(playerlist *players, int seat) {
 	args = sscanf(line, "%s", temp.name); 
 	} while(args != 1);
 	
-	// search if player name is taken
+	// Check if player name is taken
 	for(cur = players->head; cur != players->tail; cur = cur->next) {
 		if(strcmp(cur->p_data.name, temp.name) == 0) {
 			printf("That name is taken. Please choose another name.\n");

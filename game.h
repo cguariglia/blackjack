@@ -36,7 +36,7 @@ void house_plays(player *, stack *, ai_info *, int);
 int has_blackjack(player);
 void write_stats(playerlist);
 void change_bet(playerlist *);
-void load_ai_tables(ai_info *);
+void load_ai_tables(ai_info *, char**);
 void print_table(char **, int, int);
 void play_ai(p_node **, player, stack *, int, ai_info);
 void update_ai_bet(playerlist *, ai_info, stack);

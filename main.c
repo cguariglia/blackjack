@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
     SDL_Event event;
     int delay = 33;
     int quit = 0;
-    int x, y;
+    int mouse_x, mouse_y;
     playerlist *players;
 	ai_info ai_tables; // tables for AI's and count for card counting
     p_node *current;
@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
     srand(time(NULL)); // seeds
     
     // check arguments
-    if(argc != 2) {
+    if(argc != 3) {
 		printf("Not enough arguments (or too many)! Please specify the filename only.\n");
 		return EXIT_FAILURE;
 	}
@@ -47,33 +47,32 @@ int main(int argc, char **argv) {
 	
 	printf("Keys:\n(H)it - (S)tand - (B)et - (D)ouble - Surrende(r)\n(Q)uit - (N)ew Game - (A)dd Player\n");
 	
-	// load AI decision info
-	load_ai_tables(&ai_tables);
+	// Load AI decision info
+	load_ai_tables(&ai_tables, &argv[2]);
 	ai_tables.delay = 1000;
 	ai_tables.count = 0;
 	
-	// initialize graphics
+	// Initialize graphics
 	init_everything(WIDTH_WINDOW, HEIGHT_WINDOW, &serif, imgs, &window, &renderer);
     // loads the cards images
     load_cards(cards);
     
     first_hand(players, deck, &ai_tables, deck_num); // deal first round of cards
     
-	// set first player
+	// Set first player
 	current = players->head; 
 	current->p_data.status = 1;
     
  	while (quit == 0) {
 		
-        // while there's events to handle
+        // While there's events to handle
         while(SDL_PollEvent(&event)) {
-			SDL_GetMouseState(&x, &y);
+			SDL_GetMouseState(&mouse_x, &mouse_y);
 			if (event.type == SDL_QUIT) {
 				// The window gets closed
 				quit = 1;
             }
 			else if(event.type == SDL_KEYDOWN) {
-				printf("%d\n", ai_tables.count);	
 				switch (event.key.keysym.sym) { 
 				    // You can quit with the 'q' key too
                     case SDLK_q:
@@ -94,14 +93,14 @@ int main(int argc, char **argv) {
                         
                     // The player asks for another card
 					case SDLK_h:
-						// hit
+						// Hit
 						if(current != players->tail && current->p_data.type == HU_TYPE)
 						    deal_card(&(current->p_data), deck, deck_num, &ai_tables);    
                         break;
                         
                     // You can't start a new game unless the current game is over.
                     case SDLK_n:
-                    // The game is only over if the house has finished playing
+						// The game is only over if the house has finished playing
 						if(current == players->tail) {
 							first_hand(players, deck, &ai_tables, deck_num);
 							next_player(&current);
@@ -109,7 +108,7 @@ int main(int argc, char **argv) {
                         break;
                         
                     case SDLK_r:
-						// surrender
+						// Surrender
 						if(current != players->tail && current->p_data.type == HU_TYPE && current->p_data.hand.size == 2) {
 							current->p_data.status = SURRENDER_STATUS;
 							next_player(&current);
@@ -117,7 +116,7 @@ int main(int argc, char **argv) {
 						break;
 						
 					case SDLK_d:
-						// double
+						// Double
 						if(current != players->tail && current->p_data.type == HU_TYPE && current->p_data.hand.size == 2) {
 							current->p_data.bet *= 2;
 							current->p_data.status = DOUBLE_STATUS;
@@ -127,7 +126,7 @@ int main(int argc, char **argv) {
 						break;
 						
 					case SDLK_b:
-						// bet
+						// Bet
 						if(current == players->tail)
 							change_bet(players);
 						break;
@@ -151,7 +150,7 @@ int main(int argc, char **argv) {
 			}
 			else if(event.type == SDL_MOUSEBUTTONUP) {
 				if(event.button.button == SDL_BUTTON_LEFT) {
-					seat = get_seat(x, y);
+					seat = get_seat(mouse_x, mouse_y);
 				}
 			}
         } // close event loop
@@ -199,7 +198,7 @@ int main(int argc, char **argv) {
     }
 
 
-    // free memory allocated for images and textures and close everything including fonts
+    // Free memory allocated for images, textures and lists and close everything including fonts
     free_list(players);   
     unload_cards(cards);
     TTF_CloseFont(serif);
