@@ -54,6 +54,13 @@ typedef struct {
 	int size;
 } playerlist;
 
+typedef struct {
+	char **hard_table;
+	char **soft_table;
+	int delay;
+	int count; // for card counting
+} ai_info;
+
 void * allocate(size_t);
 c_node * push(stack *, card);
 c_node * pop(stack *);
@@ -62,6 +69,7 @@ void free_stack(stack *);
 void insert_node(playerlist *, player, int);
 void free_list(playerlist *);
 void read_settings(char *, playerlist *, int *);
+void free_tables(ai_info);
 void print_players(playerlist);
 	
 #endif

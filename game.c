@@ -39,6 +39,7 @@ void make_ordered_deck(c_node **head, int decks) {
 card remove_card(c_node **head, int index) {
 	c_node *cur;
 	c_node *prev = NULL;
+	card data;
 
 	int i = 0;
 
@@ -56,7 +57,9 @@ card remove_card(c_node **head, int index) {
 		i += 1;
 	}
 
-	return (cur->c_data);
+	data = cur->c_data;
+	free(cur);
+	return data;
 }
 
 void make_deck(stack *deck, int deck_num) {
@@ -78,7 +81,7 @@ void make_deck(stack *deck, int deck_num) {
 
 void init_deck(stack **deck, int deck_num) {
 	*deck = (stack *)allocate(sizeof(stack));
-	(*deck)->top = NULL;
+	(*deck)->top = NULL; 	
 	(*deck)->size = 0;
 	make_deck(*deck, deck_num);
 }
@@ -87,9 +90,9 @@ void deal_card(player *dest, stack *source, int deck_num, ai_info *ai) {
 	c_node *temp;
 
 	// Check if deck is empty
-	if(is_empty(*source))
-		init_deck(&source, deck_num);
-		
+	if(is_empty(*source)) 
+		make_deck(source, deck_num);
+
 	// Update card counting for AI's
 	if(source->top->c_data.id >= 9)
 		ai->count -= 1;
@@ -98,15 +101,15 @@ void deal_card(player *dest, stack *source, int deck_num, ai_info *ai) {
 
 	temp = pop(source);
 	push(&(dest->hand), temp->c_data);
+	free(temp);
 
 	// Calculates points after new card has been dealt
 	dest->points = point_calculator(*dest);
-	
 }
 
 // Deal two cards to every player and the house
 void first_hand(playerlist *players, stack *deck, ai_info *info, int deck_num) {
-	int i;
+	int i, card_id;
 	p_node *cur;
 
 	players->tail->p_data.active = 1;
@@ -119,14 +122,14 @@ void first_hand(playerlist *players, stack *deck, ai_info *info, int deck_num) {
 			cur->p_data.status = 0;
 			
 			for(i = 0; i < 2; i++) {
-				if(i == 0 && cur == players->tail) {
-					if(deck->top->c_data.id >= 9)
-						info->count += 1;
-					else if(deck->top->c_data.id <= 5)
-						info->count -= 1;
-				}	
 				deal_card(&(cur->p_data), deck, deck_num, info);
-				
+				if(i == 0 && cur == players->tail) {
+					card_id = players->tail->p_data.hand.top->c_data.id;
+					if(card_id >= 9)
+						info->count += 1;
+					else if(card_id <= 5)
+						info->count -= 1;
+				}
 			}
 
 			// If the house has recieved cards then stop dealing
@@ -306,7 +309,7 @@ void change_bet(playerlist *players) {
 }
 
 // load the AI decision tables from a file
-void load_ai_tables(ai_info *info, char** filename) {
+void load_ai_tables(ai_info *info, char *filename) {
 	int i, line = 0, col = 0;
 	char c, **hard, **soft;
 	FILE *f;
@@ -314,12 +317,13 @@ void load_ai_tables(ai_info *info, char** filename) {
 	// allocate memory for tables
 	hard = (char **)allocate(sizeof(char *) * 10);
 	soft = (char **)allocate(sizeof(char *) * 7);
-	for(i = 0; i < 10; i++) {
+	for(i = 0; i < 10; i++)
 		hard[i] = (char *)allocate(sizeof(char) * 10);
+	
+	for(i = 0; i < 7; i++) 
 		soft[i] = (char *)allocate(sizeof(char) * 10);
-	}
 
-	f = fopen(*filename, "r");
+	f = fopen(filename, "r");
 	if(f == NULL) {
 		printf("There was an error while opening the AI configuration file.\n");
 		exit(EXIT_FAILURE);
@@ -377,7 +381,7 @@ void play_ai(p_node **current, player house, stack *deck, int decks, ai_info inf
 	for(cur = ai->hand.top; cur != NULL; cur = cur->next)
 		if(cur->c_data.id == ACE_ID)
 			aces += 1;
-
+	
 	// Position in the table
 	if(house_card.id == ACE_ID)
 		col = 9;
@@ -402,12 +406,13 @@ void play_ai(p_node **current, player house, stack *deck, int decks, ai_info inf
 		if(ai->points >= 19)
 			line = 6;
 		else
-			line = ai->points - 13;
+			line = ai->points - 12;
 		
 		if(aces == 2 && ai->hand.size == 2)
 			decision = 'H';
-		else
+		else {
 			decision = info.soft_table[line][col];
+		}
 	}
 	
 	// Correct decision if it isn't possible to double
@@ -425,13 +430,11 @@ void play_ai(p_node **current, player house, stack *deck, int decks, ai_info inf
 	// Correct decision if surrendering is impossible
 	if(decision == 'R' && ai->hand.size > 2)
 		decision = 'H';
-
 	// Make move
 	if(decision == 'H') // hit
 		deal_card(ai, deck, decks, &info);
-	else if(decision == 'S') { // stand
+	else if(decision == 'S') // stand
 		next_player(current);
-	}
 	else if(decision == 'D') { // double
 		ai->bet *= 2;
 		ai->status = DOUBLE_STATUS;
@@ -449,15 +452,18 @@ void update_ai_bet(playerlist *players, ai_info info, stack deck) {
 	p_node *cur;
 	int mult = 1; // multiplier for bet changing
 	
-	printf("count is at: %d\n", info.count);
 	mult = info.count / ((deck.size / 52) + 1);
+	if(mult == 0 || mult > 3 || mult < -3)
+		return; // dont make changes to bet if mult is zero or very high
 	
 	for(cur = players->head; cur->p_data.type != HOUSE_TYPE; cur = cur->next) {
 		if(cur->p_data.type != AI_TYPE)
 			continue;
 		
-		if(info.count > 0) 
-			cur->p_data.bet *= (int)pow(2, mult); // change bet
+		if(info.count > 0 && cur->p_data.bet < 32)
+			cur->p_data.bet *= 2;
+		else if(info.count < 0 && cur->p_data.bet > 2)
+			cur->p_data.bet /= 2;
 	}
 }
 

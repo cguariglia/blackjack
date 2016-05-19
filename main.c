@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
 	printf("Keys:\n(H)it - (S)tand - (B)et - (D)ouble - Surrende(r)\n(Q)uit - (N)ew Game - (A)dd Player\n");
 	
 	// Load AI decision info
-	load_ai_tables(&ai_tables, &argv[2]);
+	load_ai_tables(&ai_tables, argv[2]);
 	ai_tables.delay = 1000;
 	ai_tables.count = 0;
 	
@@ -159,12 +159,11 @@ int main(int argc, char **argv) {
         if(current->p_data.points > 21 && current != players->tail)
 			next_player(&current);
 		// check if player has blackjack
-        else if(has_blackjack(current->p_data) && current != players->tail)
+        if(has_blackjack(current->p_data) && current != players->tail)
 			next_player(&current);
         
         // time for da houzz
         if(current == players->tail && players->tail->p_data.status == 1) {
-			// <-- stuuuuuuuuuuuuuuuuufffff aiiii update house card upside down
 			house_plays(&(players->tail->p_data), deck, &ai_tables, deck_num);
 			end_game(players);
 			update_ai_bet(players, ai_tables, *deck);
@@ -192,14 +191,15 @@ int main(int argc, char **argv) {
 		
 		// them AI's are getting smart
 		if(current->p_data.type == AI_TYPE) {
-			SDL_Delay(ai_tables.delay);
+			//SDL_Delay(ai_tables.delay);
 			play_ai(&current, players->tail->p_data, deck, deck_num, ai_tables);
 		}
     }
 
-
     // Free memory allocated for images, textures and lists and close everything including fonts
-    free_list(players);   
+    free_list(players); 
+    //free_tables(ai_tables);
+    
     unload_cards(cards);
     TTF_CloseFont(serif);
     TTF_CloseFont(large_serif);

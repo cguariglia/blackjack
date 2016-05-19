@@ -16,13 +16,6 @@
 #define WIDTH_WINDOW 900      // window width
 #define HEIGHT_WINDOW 525     // window height
 
-typedef struct {
-	char **hard_table;
-	char **soft_table;
-	int delay;
-	int count; // for card counting
-} ai_info;
-
 void next_player(p_node **);
 void make_ordered_deck(c_node **, int);
 card remove_card(c_node **, int);
@@ -36,7 +29,7 @@ void house_plays(player *, stack *, ai_info *, int);
 int has_blackjack(player);
 void write_stats(playerlist);
 void change_bet(playerlist *);
-void load_ai_tables(ai_info *, char**);
+void load_ai_tables(ai_info *, char*);
 void print_table(char **, int, int);
 void play_ai(p_node **, player, stack *, int, ai_info);
 void update_ai_bet(playerlist *, ai_info, stack);

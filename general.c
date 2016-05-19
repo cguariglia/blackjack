@@ -41,7 +41,6 @@ c_node * pop(stack *s) {
 	c_node *temp = s->top;
 	
 	s->top = s->top->next;
-	
 	s->size -= 1;
 	
 	return temp;
@@ -179,11 +178,22 @@ void read_settings(char *filename, playerlist *players, int *deck_num) {
 	fclose(f);
 	
 	// Initializes house
+	temp.name[0] = '\0';
 	temp.type = 2;
 	temp.status = 0;
 	temp.seat = 5;
 	
 	insert_node(players, temp, players->size);
+}
+
+void free_tables(ai_info info) {
+	int i;
+	
+	for(i = 0; i < 10; i++)
+		free(info.hard_table[i]);
+	
+	for(i = 0; i < 7; i++)
+		free(info.soft_table[i]);
 }
 
 void print_players(playerlist players) {

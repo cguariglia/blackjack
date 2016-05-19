@@ -1,0 +1,8 @@
+Player Name | Player Type --> Wins | Losses | Ties | Money
+
+Solar | HU --> 5 | 12 | 4 | 90
+Moonbyul | HU --> 4 | 9 | 6 | 30
+Wheein | HU --> 6 | 10 | 5 | -142
+Hwasa | HU --> 6 | 9 | 5 | -236
+
+House Profit: 2758
