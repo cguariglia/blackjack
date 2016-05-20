@@ -5,7 +5,11 @@
  * Relevant decisions:
  * --> Players are represented by a circular list (including the house)
  * --> Every deck of cards is represented by a stack, including the main deck
- * --> 
+ * 
+ * Included .c files:
+ * --> general.c - general functions (such as push, pop, insert node...)
+ * --> game.c - functions that deal with the game (such as point calculator and deal card)
+ * --> gui.c - all functions that deal with graphics and the sdl library  
  */
 
 #include <SDL2/SDL.h>
@@ -208,8 +212,9 @@ int main(int argc, char **argv) {
     }
 
     // Free memory allocated for images, textures and lists and close everything including fonts
-    free_list(players); 
+    free_list(players);
     unload_cards(cards);
+    free_tables(ai_tables);
     TTF_CloseFont(serif);
     TTF_CloseFont(large_serif);
     SDL_FreeSurface(imgs[0]);

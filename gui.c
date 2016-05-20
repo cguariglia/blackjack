@@ -161,7 +161,7 @@ void render_sidebar(playerlist players, ai_info ai, TTF_Font *_font, SDL_Surface
 	
     // Render AI delay
     height = 432;
-    sprintf(delay_str, "AI Delay: %d seconds", ai.delay / 1000);
+    sprintf(delay_str, "AI Delay: %d second%c", ai.delay / 1000, ai.delay > 1000 ? 's' : ' ');
     height += render_text(separatorPos+3*MARGIN, height, delay_str, _font, &black, _renderer);
 
     // Render student names
@@ -384,12 +384,7 @@ void init_font()
 	}
 }
 
-/**
- *create_window: Creates a window for the application
- *\param width width in px of the window
- *\param height height in px of the window
- *\return pointer to the window created
- */
+// create_window: Creates a window for the application
 SDL_Window * create_window(int width, int height) {
     SDL_Window *window;
     // init window

@@ -1,8 +1,8 @@
 Player Name | Player Type --> Wins | Losses | Ties | Money
 
-IttaPupu | AI       --> 0  | 2  | 0  | 6   
-IceCube  | AI       --> 0  | 2  | 0  | 6   
-Doctor   | AI       --> 0  | 2  | 0  | 6   
-Zelda    | AI       --> 1  | 1  | 0  | 11  
+Jonas | HU --> 1 | 0 | 0 | 400
+Salvio | HU --> 0 | 1 | 0 | 200
+Gaitan | HU --> 0 | 1 | 0 | 300
+RSanches | HU --> 0 | 1 | 0 | 450
 
-House Profit: 21
+House Profit: 575

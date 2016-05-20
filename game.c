@@ -438,20 +438,21 @@ void play_ai(p_node **current, player house, stack *deck, int decks, ai_info inf
 // Makes the AI's change their bets based on card-counting
 void update_ai_bet(playerlist *players, ai_info info, stack deck) {
 	p_node *cur;
-	int mult = 1; // multiplier for bet changing
+	int true_count = 1; // multiplier for bet changing
 	
-	mult = info.count / ((deck.size / 52) + 1);
-	if(mult == 0 || mult > 3 || mult < -3)
+	true_count = info.count / ((deck.size / 52) + 1);
+	printf("true count: %d\n", true_count);
+	if(true_count == 0 || true_count > 3 || true_count < -3)
 		return; // dont make changes to bet if mult is zero or very high
 	
 	for(cur = players->head; cur->p_data.type != HOUSE_TYPE; cur = cur->next) {
 		if(cur->p_data.type != AI_TYPE)
 			continue;
 		
-		if(info.count > 0 && cur->p_data.bet < 32)
-			cur->p_data.bet *= 2;
-		else if(info.count < 0 && cur->p_data.bet > 2)
-			cur->p_data.bet /= 2;
+		if(true_count > 0 && cur->p_data.bet * 2 < cur->p_data.money / 4)
+			cur->p_data.bet *= true_count;
+		else if(true_count < 0 && cur->p_data.bet / 2 > 2)
+			cur->p_data.bet /= -true_count;
 	}
 }
 
@@ -517,7 +518,7 @@ void add_player(playerlist *players, int seat) {
 	
 	do {
 	printf("What is the new player's name? ");
-	fgets(line, BUFFER, stdin);
+	fgets(line, MAX_NAME, stdin);
 	args = sscanf(line, "%s", temp.name); 
 	} while(args != 1);
 	
