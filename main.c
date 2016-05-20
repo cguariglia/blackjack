@@ -1,3 +1,13 @@
+/* BLACKJACK - FINAL VERSION
+ * Authors: Ana Carolina Guariglia Lima & Miguel Pereira Paradinha
+ * Numbers: 83993 & 84150
+ * 
+ * Relevant decisions:
+ * --> Players are represented by a circular list (including the house)
+ * --> Every deck of cards is represented by a stack, including the main deck
+ * --> 
+ */
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_image.h>
@@ -6,7 +16,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <assert.h>
 
 #include "general.h"
 #include "game.h"
@@ -200,8 +209,6 @@ int main(int argc, char **argv) {
 
     // Free memory allocated for images, textures and lists and close everything including fonts
     free_list(players); 
-    //free_tables(ai_tables);
-    
     unload_cards(cards);
     TTF_CloseFont(serif);
     TTF_CloseFont(large_serif);

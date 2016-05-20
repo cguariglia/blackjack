@@ -1,8 +1,8 @@
 Player Name | Player Type --> Wins | Losses | Ties | Money
 
-Solar | HU --> 5 | 12 | 4 | 90
-Moonbyul | HU --> 4 | 9 | 6 | 30
-Wheein | HU --> 6 | 10 | 5 | -142
-Hwasa | HU --> 6 | 9 | 5 | -236
+IttaPupu | AI       --> 0  | 2  | 0  | 6   
+IceCube  | AI       --> 0  | 2  | 0  | 6   
+Doctor   | AI       --> 0  | 2  | 0  | 6   
+Zelda    | AI       --> 1  | 1  | 0  | 11  
 
-House Profit: 2758
+House Profit: 21

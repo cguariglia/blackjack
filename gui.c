@@ -90,18 +90,18 @@ void render_table(playerlist _players, ai_info ai, int seat, TTF_Font *_font, SD
         i += 1;
     }
     
-    render_side_info(_players, ai, _font, _img, _renderer);
+    render_sidebar(_players, ai, _font, _img, _renderer);
     
     // Destroy everything
     SDL_DestroyTexture(table_texture);
 }
 
-void render_side_info(playerlist players, ai_info ai, TTF_Font *_font, SDL_Surface *_img[], SDL_Renderer *_renderer) {
+void render_sidebar(playerlist players, ai_info ai, TTF_Font *_font, SDL_Surface *_img[], SDL_Renderer *_renderer) {
     SDL_Color black = {0, 0, 0}; // Black
     SDL_Color red =  {255, 0, 0}; // Red
     SDL_Color grey = {160, 160, 160}; // Grey
     SDL_Color color;
-    int height = 0;
+    int i = 0, height = 0;
     int separatorPos =(int)(0.95f*WIDTH_WINDOW); // Seperates the left from the right part of the window
     char delay_str[STRING_SIZE], name_str[STRING_SIZE], money_str[STRING_SIZE];
     
@@ -112,24 +112,25 @@ void render_side_info(playerlist players, ai_info ai, TTF_Font *_font, SDL_Surfa
 
 	last = NULL;
 	while(last != players.tail) {
+		if(cur->p_data.active == 0 || cur->p_data.seat < i) {
+				last = cur;
+				cur = cur->next;
+				continue;
+			}
+	
+		// Strings used to render the side info in case no player is playing in that spot
+		sprintf(name_str, "No Player | --");
+		sprintf(money_str, "Money: -- | Bet: --");
 		
-		if(cur->p_data.active == 0) {
-			// Strings used to render the side info in case no player is playing in that spot
-			sprintf(name_str, "No Player | --");
-			sprintf(money_str, "Money: -- | Bet: --");
-			
-			SDL_SetRenderDrawColor(_renderer, 160, 160, 160, 255);
+		
+		if(cur->p_data.seat > (i + 1)) {
 			height += render_text(separatorPos+3*MARGIN, height, name_str, _font, &grey, _renderer);
 			height += render_text(separatorPos+3*MARGIN, height, money_str, _font, &grey, _renderer);
 			height += 15;
-			
-			// go to next active player
-			while(cur->p_data.active != 1) {
-				last = cur;
-				cur = cur->next;
-			}
+			i += 1;
 			continue;
 		}
+			
 		if(cur == players.tail)
 			break;
 		
@@ -155,6 +156,7 @@ void render_side_info(playerlist players, ai_info ai, TTF_Font *_font, SDL_Surfa
 		// go to next player
 		last = cur;
 		cur = cur->next;
+		i += 1;
 	}
 	
     // Render AI delay

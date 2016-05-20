@@ -227,20 +227,8 @@ void end_game(playerlist *players) {
 }
 
 void house_plays(player *house, stack *deck, ai_info *ai_tables, int deck_num) {
-	c_node *cur;
-	int aces = 0;
-
 	while(house->points < 17)
 		deal_card(house, deck, deck_num, ai_tables);
-
-	if(house->points == 17) {
-		for(cur = house->hand.top; cur != NULL; cur = cur->next)
-			if(cur->c_data.id == 13) 
-				aces += 1;
-
-		if(aces == 1)
-			deal_card(house, deck, deck_num, ai_tables);
-	}
 
 	house->status = 0;
 	house->active = 2;
