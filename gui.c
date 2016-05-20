@@ -10,13 +10,13 @@
 
 
 // Renders the playing table(player squares, names, etc) and sidebar
-void render_table(playerlist _players, int seat, TTF_Font *_font, SDL_Surface *_img[], SDL_Renderer *_renderer) {
+void render_table(playerlist _players, ai_info ai, int seat, TTF_Font *_font, SDL_Surface *_img[], SDL_Renderer *_renderer) {
     SDL_Color white = {255, 255, 255}; // White
     SDL_Color black = {0, 0, 0}; // Black
     SDL_Color red =  {255, 0, 0}; // Red
     SDL_Color grey = {160, 160, 160};
     char name_money_str[STRING_SIZE], add[STRING_SIZE], name_str[STRING_SIZE], money_str[STRING_SIZE];
-    char no_player[STRING_SIZE], no_money[STRING_SIZE];
+    char no_player[STRING_SIZE], no_money[STRING_SIZE], delay_str[STRING_SIZE];
     SDL_Texture *table_texture;
     SDL_Rect tableSrc, tableDest, playerRect;
     int separatorPos =(int)(0.95f*WIDTH_WINDOW); // Seperates the left from the right part of the window
@@ -84,7 +84,7 @@ void render_table(playerlist _players, int seat, TTF_Font *_font, SDL_Surface *_
 
 			// Fill player space
 			if(seat == (i + 1)) {
-				SDL_SetRenderDrawColor(_renderer, 160, 160, 160, 160);
+				SDL_SetRenderDrawColor(_renderer, 160, 160, 160, 85);
 				SDL_RenderFillRect(_renderer, &playerRect);
 			}
 
@@ -94,6 +94,7 @@ void render_table(playerlist _players, int seat, TTF_Font *_font, SDL_Surface *_
 		}
 		if(cur == _players.tail)
 			break;
+
         // Renders the active player in red
         else if(cur->p_data.status == 1) {
             SDL_SetRenderDrawColor(_renderer, 255, 0, 0, 255);
@@ -118,6 +119,16 @@ void render_table(playerlist _players, int seat, TTF_Font *_font, SDL_Surface *_
         cur = cur->next;
         i += 1;
     }
+    
+    // Render AI delay
+    height = 432;
+    sprintf(delay_str, "AI Delay: %d seconds", ai.delay / 1000);
+    height += render_text(separatorPos+3*MARGIN, height, delay_str, _font, &black, _renderer);
+
+    // Render student names
+    height = 471;
+    height += render_text(separatorPos+3*MARGIN, height, "Carolina Guariglia | 83993", _font, &black, _renderer);
+    height += render_text(separatorPos+3*MARGIN, height, "Miguel Paradinha | 84150", _font, &black, _renderer);
 
     // Destroy everything
     SDL_DestroyTexture(table_texture);

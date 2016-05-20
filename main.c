@@ -69,7 +69,6 @@ int main(int argc, char **argv) {
         while(SDL_PollEvent(&event)) {
 
 			SDL_GetMouseState(&mouse_x, &mouse_y);
-            printf("hovering seat %d\n", get_seat(mouse_x, mouse_y));
 
 			if (event.type == SDL_QUIT) {
 				// The window gets closed
@@ -180,7 +179,7 @@ int main(int argc, char **argv) {
 		}
         
         // render game table
-        render_table(*players, get_seat(mouse_x, mouse_y), serif, imgs, renderer);
+        render_table(*players, ai_tables, get_seat(mouse_x, mouse_y), serif, imgs, renderer);
         // render house cards
         render_house_cards(players->tail->p_data, cards, renderer);
         // render player cards
@@ -194,7 +193,7 @@ int main(int argc, char **argv) {
 		
 		// them AI's are getting smart
 		if(current->p_data.type == AI_TYPE) {
-			//SDL_Delay(ai_tables.delay);
+			SDL_Delay(ai_tables.delay);
 			play_ai(&current, players->tail->p_data, deck, deck_num, ai_tables);
 		}
     }
