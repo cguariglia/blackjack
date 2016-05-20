@@ -10,7 +10,7 @@
 
 
 // Renders the playing table(player squares, names, etc) and sidebar
-void render_table(playerlist _players, TTF_Font *_font, SDL_Surface *_img[], SDL_Renderer *_renderer) {
+void render_table(playerlist _players, int seat, TTF_Font *_font, SDL_Surface *_img[], SDL_Renderer *_renderer) {
     SDL_Color white = {255, 255, 255}; // White
     SDL_Color black = {0, 0, 0}; // Black
     SDL_Color red =  {255, 0, 0}; // Red
@@ -76,11 +76,20 @@ void render_table(playerlist _players, TTF_Font *_font, SDL_Surface *_img[], SDL
             SDL_SetRenderDrawColor(_renderer, 160, 160, 160, 255);
             render_text(playerRect.x + 20, playerRect.y - 30, add, _font, &grey, _renderer);
 			SDL_RenderDrawRect(_renderer, &playerRect);
-			i += 1;
+			
 			// Render side info
 			height += render_text(separatorPos+3*MARGIN, height, no_player, _font, &grey, _renderer);
 			height += render_text(separatorPos+3*MARGIN, height, no_money, _font, &grey, _renderer);
 			height += 15;
+
+			// Fill player space
+			if(seat == (i + 1)) {
+				SDL_SetRenderDrawColor(_renderer, 160, 160, 160, 160);
+				SDL_RenderFillRect(_renderer, &playerRect);
+			}
+
+            i += 1;
+
 			continue;
 		}
 		if(cur == _players.tail)
@@ -365,7 +374,9 @@ SDL_Renderer * create_renderer(int width, int height, SDL_Window *_window) {
 
 	// set size of renderer to the same as window
 	SDL_RenderSetLogicalSize(renderer, width+EXTRASPACE, height);
-
+	
+	// enable alpha for the renderer
+	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 	return renderer;
 }
 

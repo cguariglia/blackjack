@@ -28,7 +28,7 @@ SDL_Window* create_window(int, int);
 SDL_Renderer* create_renderer(int, int, SDL_Window *);
 int render_text(int, int, const char*, TTF_Font *, SDL_Color *, SDL_Renderer *);
 int render_logo(int, int, SDL_Surface *, SDL_Renderer *);
-void render_table(playerlist, TTF_Font *, SDL_Surface **, SDL_Renderer *);
+void render_table(playerlist, int, TTF_Font *, SDL_Surface **, SDL_Renderer *);
 void render_card(int, int, int, SDL_Surface **, SDL_Renderer *);
 void render_house_cards(player, SDL_Surface **, SDL_Renderer *);
 void render_player_cards(playerlist, SDL_Surface **, SDL_Renderer *);

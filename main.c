@@ -67,7 +67,10 @@ int main(int argc, char **argv) {
 		
         // While there's events to handle
         while(SDL_PollEvent(&event)) {
+
 			SDL_GetMouseState(&mouse_x, &mouse_y);
+            printf("hovering seat %d\n", get_seat(mouse_x, mouse_y));
+
 			if (event.type == SDL_QUIT) {
 				// The window gets closed
 				quit = 1;
@@ -177,7 +180,7 @@ int main(int argc, char **argv) {
 		}
         
         // render game table
-        render_table(*players, serif, imgs, renderer);
+        render_table(*players, get_seat(mouse_x, mouse_y), serif, imgs, renderer);
         // render house cards
         render_house_cards(players->tail->p_data, cards, renderer);
         // render player cards
