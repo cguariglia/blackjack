@@ -12,17 +12,14 @@
 // Renders the playing table(player squares, names, etc) and sidebar
 void render_table(playerlist _players, ai_info ai, int seat, TTF_Font *_font, SDL_Surface *_img[], SDL_Renderer *_renderer) {
     SDL_Color white = {255, 255, 255}; // White
-    SDL_Color black = {0, 0, 0}; // Black
     SDL_Color red =  {255, 0, 0}; // Red
-    SDL_Color grey = {160, 160, 160};
-    char name_money_str[STRING_SIZE], add[STRING_SIZE], name_str[STRING_SIZE], money_str[STRING_SIZE];
-    char no_player[STRING_SIZE], no_money[STRING_SIZE], delay_str[STRING_SIZE];
+    SDL_Color grey = {160, 160, 160}; // Grey
+    char name_money_str[STRING_SIZE], add[STRING_SIZE];
     SDL_Texture *table_texture;
     SDL_Rect tableSrc, tableDest, playerRect;
     int separatorPos =(int)(0.95f*WIDTH_WINDOW); // Seperates the left from the right part of the window
     p_node *last, *cur = _players.head;
     int i = 0;
-    int height = 0;
 
     // Set color of renderer to some color
     SDL_SetRenderDrawColor(_renderer, 255, 255, 255, 255);
@@ -41,11 +38,7 @@ void render_table(playerlist _players, ai_info ai, int seat, TTF_Font *_font, SD
     table_texture = SDL_CreateTextureFromSurface(_renderer, _img[0]);
     SDL_RenderCopy(_renderer, table_texture, &tableSrc, &tableDest);
     
-    // Render the IST Logo
-    height = render_logo(separatorPos + 25, 0, _img[1], _renderer);
-    
     last = NULL;
-    
     // Renders everything, for every player. Last is used instead of cur because this loop needs to run one more time than that
     while(last != _players.tail) {
 		// Either the player isn't playing or it's already been rendered
@@ -54,14 +47,6 @@ void render_table(playerlist _players, ai_info ai, int seat, TTF_Font *_font, SD
 			cur = cur->next;
 			continue;
 		}
-		
-		// Strings used to render the side info in case no player is playing in that spot
-		sprintf(no_player, "No Player | --");
-		sprintf(no_money, "Money: -- | Bet: --");
-		
-		// Render side information: name | type and money | bet
-		sprintf(name_str, "%s | %s", cur->p_data.name, (cur->p_data.type == AI_TYPE ? "AI":"HU"));
-		sprintf(money_str, "Money: %d | Bet: %d", cur->p_data.money, cur->p_data.bet);
 		
 		// Position and strings used for the rectangles
 		playerRect.x = i*(separatorPos/4-5)+10;
@@ -76,20 +61,13 @@ void render_table(playerlist _players, ai_info ai, int seat, TTF_Font *_font, SD
             SDL_SetRenderDrawColor(_renderer, 160, 160, 160, 255);
             render_text(playerRect.x + 20, playerRect.y - 30, add, _font, &grey, _renderer);
 			SDL_RenderDrawRect(_renderer, &playerRect);
-			
-			// Render side info
-			height += render_text(separatorPos+3*MARGIN, height, no_player, _font, &grey, _renderer);
-			height += render_text(separatorPos+3*MARGIN, height, no_money, _font, &grey, _renderer);
-			height += 15;
 
 			// Fill player space
 			if(seat == (i + 1)) {
 				SDL_SetRenderDrawColor(_renderer, 160, 160, 160, 85);
 				SDL_RenderFillRect(_renderer, &playerRect);
 			}
-
             i += 1;
-
 			continue;
 		}
 		if(cur == _players.tail)
@@ -99,19 +77,11 @@ void render_table(playerlist _players, ai_info ai, int seat, TTF_Font *_font, SD
         else if(cur->p_data.status == 1) {
             SDL_SetRenderDrawColor(_renderer, 255, 0, 0, 255);
             render_text(playerRect.x + 20, playerRect.y - 30, name_money_str, _font, &red, _renderer);
-            
-            height += render_text(separatorPos+3*MARGIN, height, name_str, _font, &red, _renderer);
-			height += render_text(separatorPos+3*MARGIN, height, money_str, _font, &red, _renderer);
-			height += 15;
         }
         // All other players are rendered in white
         else {
             SDL_SetRenderDrawColor(_renderer, 255, 255, 255, 255);
             render_text(playerRect.x + 20, playerRect.y - 30, name_money_str, _font, &white, _renderer);
-            
-            height += render_text(separatorPos+3*MARGIN, height, name_str, _font, &black, _renderer);
-			height += render_text(separatorPos+3*MARGIN, height, money_str, _font, &black, _renderer);
-			height += 15;
         }
         SDL_RenderDrawRect(_renderer, &playerRect);
         
@@ -120,6 +90,73 @@ void render_table(playerlist _players, ai_info ai, int seat, TTF_Font *_font, SD
         i += 1;
     }
     
+    render_side_info(_players, ai, _font, _img, _renderer);
+    
+    // Destroy everything
+    SDL_DestroyTexture(table_texture);
+}
+
+void render_side_info(playerlist players, ai_info ai, TTF_Font *_font, SDL_Surface *_img[], SDL_Renderer *_renderer) {
+    SDL_Color black = {0, 0, 0}; // Black
+    SDL_Color red =  {255, 0, 0}; // Red
+    SDL_Color grey = {160, 160, 160}; // Grey
+    SDL_Color color;
+    int height = 0;
+    int separatorPos =(int)(0.95f*WIDTH_WINDOW); // Seperates the left from the right part of the window
+    char delay_str[STRING_SIZE], name_str[STRING_SIZE], money_str[STRING_SIZE];
+    
+    p_node *last, *cur = players.head;
+    
+    // Render the IST Logo, centered
+    height = render_logo(separatorPos + 25, 0, _img[1], _renderer);
+
+	last = NULL;
+	while(last != players.tail) {
+		
+		if(cur->p_data.active == 0) {
+			// Strings used to render the side info in case no player is playing in that spot
+			sprintf(name_str, "No Player | --");
+			sprintf(money_str, "Money: -- | Bet: --");
+			
+			SDL_SetRenderDrawColor(_renderer, 160, 160, 160, 255);
+			height += render_text(separatorPos+3*MARGIN, height, name_str, _font, &grey, _renderer);
+			height += render_text(separatorPos+3*MARGIN, height, money_str, _font, &grey, _renderer);
+			height += 15;
+			
+			// go to next active player
+			while(cur->p_data.active != 1) {
+				last = cur;
+				cur = cur->next;
+			}
+			continue;
+		}
+		if(cur == players.tail)
+			break;
+		
+		// make strings
+		sprintf(name_str, "%s | %s", cur->p_data.name, (cur->p_data.type == AI_TYPE ? "AI":"HU"));
+		sprintf(money_str, "Money: %d | Bet: %d", cur->p_data.money, cur->p_data.bet);
+		
+		if(cur->p_data.status == 1) {
+			// render in red
+			SDL_SetRenderDrawColor(_renderer, 255, 0, 0, 255);
+			color = red;
+		}
+		else if(cur->p_data.status == 0) {
+			// render in black
+			SDL_SetRenderDrawColor(_renderer, 0, 0, 0, 255);
+			color = black;
+		}
+		
+		height += render_text(separatorPos+3*MARGIN, height, name_str, _font, &color, _renderer);
+		height += render_text(separatorPos+3*MARGIN, height, money_str, _font, &color, _renderer);
+		height += 15;
+		
+		// go to next player
+		last = cur;
+		cur = cur->next;
+	}
+	
     // Render AI delay
     height = 432;
     sprintf(delay_str, "AI Delay: %d seconds", ai.delay / 1000);
@@ -129,9 +166,6 @@ void render_table(playerlist _players, ai_info ai, int seat, TTF_Font *_font, SD
     height = 471;
     height += render_text(separatorPos+3*MARGIN, height, "Carolina Guariglia | 83993", _font, &black, _renderer);
     height += render_text(separatorPos+3*MARGIN, height, "Miguel Paradinha | 84150", _font, &black, _renderer);
-
-    // Destroy everything
-    SDL_DestroyTexture(table_texture);
 }
 
 void render_house_cards(player _house, SDL_Surface **_cards, SDL_Renderer*_renderer) {
