@@ -20,7 +20,7 @@ and the number of players between 1 and 4 (inclusive).
 The following lines each represent a single player in the format
 `TYPE-NAME-MONEY-BET`.
 
-* TYPE: player type (EA or HU);
+* TYPE: player type (AI/EA or HU);
 * NAME: player's name;
 * MONEY: starting money (between 10 and 500);
 * BET: starting amount to bet (between 2 and 25% of MONEY);

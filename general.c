@@ -163,7 +163,7 @@ void read_settings(char *filename, playerlist *players, int *deck_num) {
 		// Check for errors on the type of the player
 		if(strcmp("HU", temptype) == 0)
 			temp.type = 0;
-		else if(strcmp("EA", temptype) == 0)
+		else if(strcmp("EA", temptype) == 0 || strcmp("AI", temptype) == 0)
 			temp.type = 1;
 		else {
 			printf("Invalid player type in line %d! Please try again.", i + 2);
