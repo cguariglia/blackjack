@@ -8,10 +8,19 @@ FLAGS=-g -I/usr/local/include -Wall -pedantic -std=c99
 SDL_FLAGS=-L/usr/local/lib -lm -lSDL2 -lSDL2_ttf -lSDL2_image
 
 # name of the executable
-EXE=burakkujaku
+EXE=blackjack
 
 # files needed for compilation
-FILES=main.c game.c gui.c general.c
+FILES=game.h gui.h general.h
 
-all:
-	$(CC) $(FILES) $(FLAGS) $(SDL_FLAGS) -o $(EXE)
+# the objects made from the above files
+OBJECTS=main.c game.c gui.c general.c
+
+%.o: %.c $(FILES)
+		$(CC) $(CFLAGS) -c -o $@ $< 
+
+blackjack:
+	$(CC) $(FILES) $(FLAGS) $(SDL_FLAGS) -o $(EXE) $(OBJECTS)
+
+clean:
+	rm blackjack
