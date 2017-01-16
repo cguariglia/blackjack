@@ -14,13 +14,13 @@ EXE=blackjack
 FILES=game.h gui.h general.h
 
 # the objects made from the above files
-OBJECTS=main.c game.c gui.c general.c
+OBJECTS=main.o game.o gui.o general.o
 
 %.o: %.c $(FILES)
-		$(CC) $(CFLAGS) -c -o $@ $< 
+	$(CC) $(CFLAGS) -c -o $@ $< 
 
-blackjack:
-	$(CC) $(FILES) $(FLAGS) $(SDL_FLAGS) -o $(EXE) $(OBJECTS)
+blackjack: $(OBJECTS)
+	$(CC) $(FLAGS) $(SDL_FLAGS) -o $(EXE) $(OBJECTS)
 
 clean:
-	rm blackjack
+	rm blackjack *.o
